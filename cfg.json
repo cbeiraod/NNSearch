@@ -1,0 +1,58 @@
+{
+  "network":{
+    "topology":{
+      "type":"simple",
+      "nLayers":2,
+      "neurons":20,
+      "dropout":0
+    },
+    "epochs":300,
+    "batchSize":32,
+
+    "k-folds":1,
+
+    "optimizer":{
+      "optimizer":"nadam",
+      "learnRate":0.003,
+      "decay":0.15
+    },
+
+    "seed":42,
+
+    "branches":[
+      {
+        "name":"Jet1Pt",
+        "tag":"Jet1Pt [GeV]",
+        "label":"p_{T}\\left(j_{1}\\right) [GeV]",
+        "isFeature":true
+      },
+      {
+        "name":"XS",
+        "tag":"xsec [pb]",
+        "label":"\\sigma [pb]",
+        "isWeight":true
+      },
+      {
+        "name":"weight",
+        "tag":"weight",
+        "label":"\\omega",
+        "isWeight":true
+      }
+    ],
+    "preselection":"(DPhiJet1Jet2 < 2.5 || Jet2Pt < 60) && (Met > 280) && (HT > 200) && (isTight == 1) && (Jet1Pt > 110)",
+    "fraction":1,
+    "samples":[
+      {
+        "type":"signal",
+        "file":"signal.json",
+        "excludeWeight":[
+          "XS"
+        ]
+      },
+      {
+        "type":"background",
+        "file":"background.json"
+      }
+    ]
+  }
+}
