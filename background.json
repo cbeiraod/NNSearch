@@ -1,0 +1,30 @@
+{
+  "sample":{
+    "type":"old",
+    "basePath":"/lstore/......./",
+    "components":[
+      {
+        "name":"ttbar",
+        "tag":"ttbar",
+        "label":"t\\bar{t}",
+        "trainFiles":[],
+        "testFiles":[],
+        "color":809,
+        "lcolor":1,
+        "lwidth":4,
+        "lstyle":1
+      },
+      {
+        "name":"wjets",
+        "tag":"wjets",
+        "label":"w+jets",
+        "trainFiles":[],
+        "testFiles":[],
+        "color":8023,
+        "lcolor":1,
+        "lwidth":4,
+        "lstyle":1
+      }
+    ]
+  }
+}
