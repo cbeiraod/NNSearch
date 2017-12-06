@@ -13,3 +13,17 @@ if __name__ == "__main__":
 
   if not args.dryRun:
     print "You did not enable dry run. You are on your own!"
+
+  import json
+  configJson = json.load(open(args.configFile, "rb"))
+  if args.verbose:
+    print json.dumps(configJson, indent=4)
+
+  samples = {}
+  for samp in configJson["network"]["samples"]:
+    samples[samp["name"]] = samp
+    samples[samp["name"]]["json"] = json.load(open(samp["file"], "rb"))
+
+  if args.verbose:
+    print json.dumps(samples, indent=3)
+
