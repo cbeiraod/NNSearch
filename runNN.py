@@ -1,0 +1,15 @@
+
+
+if __name__ == "__main__":
+  import argparse
+
+  parser = argparse.ArgumentParser(description='Process the command line options')
+  parser.add_argument('-d', '--dryRun', action='store_true', help='Do a dry run (i.e. do not actually run the potentially dangerous commands but print them to the screen)')
+  parser.add_argument('-c', '--configFile', required=True, help='Configuration file describing the neural network topology and options as well as the samples to process')
+  parser.add_argument('-v', '--verbose', action='store_true', help='Whether to print verbose output')
+  parser.add_argument('-o', '--outDirectory', required=True, help='Name of the output directory')
+
+  args = parser.parse_args()
+
+  if not args.dryRun:
+    print "You did not enable dry run. You are on your own!"
