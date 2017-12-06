@@ -43,14 +43,14 @@
     "fraction":1,
     "samples":[
       {
-        "type":"signal",
+        "name":"signal",
         "file":"signal.json",
         "excludeWeight":[
           "XS"
         ]
       },
       {
-        "type":"background",
+        "name":"background",
         "file":"background.json"
       }
     ]
