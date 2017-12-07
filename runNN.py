@@ -2,6 +2,7 @@ import commonFunctions as funk
 
 if __name__ == "__main__":
   import argparse
+  import os.path
 
   parser = argparse.ArgumentParser(description='Process the command line options')
   parser.add_argument('-d', '--dryRun', action='store_true', help='Do a dry run (i.e. do not actually run the potentially dangerous commands but print them to the screen)')
@@ -13,6 +14,11 @@ if __name__ == "__main__":
 
   if not args.dryRun:
     print "You did not enable dry run. You are on your own!"
+
+  if not os.path.isfile(args.configFile):
+    import errno
+    #raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), args.configFile)
+    raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), args.configFile)
 
   import json
   configJson = json.load(open(args.configFile, "rb"))
