@@ -15,6 +15,16 @@ if __name__ == "__main__":
     #raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), args.configFile)
     raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), args.configFile)
 
+  import json
+  configJson = json.load(open(args.configFile, "rb"))
+  for samp in configJson["network"]["samples"]:
+    if not os.path.isfile(samp["file"]):
+      import errno
+      #raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), samp["file"])
+      raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), samp["file"] + " (sample: " + samp["name"] + ")")
+
 
   validator = funk.NetworkBuilder(args.configFile, batch=True, verbose=args.verbose)
+
+  print "No issues found"
 
