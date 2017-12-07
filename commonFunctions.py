@@ -26,8 +26,10 @@ class NetworkBuilder:
       raise TypeError("Batch size must be an integer")
     if not isinstance(self._kFolds, (int, long)):
       raise TypeError("K-folds must be an integer")
-    if not (isinstance(self._fraction, float) and self._fraction > 0 and self._fraction <= 1.0):
-      raise TypeError("Fraction must be a double between 0 and 1")
+    if not (isinstance(self._fraction, float)):
+      raise TypeError("Fraction must be a double")
+    if not (self._fraction > 0 and self._fraction <= 1.0):
+      raise ValueError("Fraction must be between 0 and 1")
     if not isinstance(self._seed, (int, long)):
       raise TypeError("Seed must be an integer")
 
