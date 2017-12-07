@@ -10,6 +10,7 @@ if __name__ == "__main__":
   parser.add_argument('-c', '--configFile', required=True, help='Configuration file describing the neural network topology and options as well as the samples to process')
   parser.add_argument('-v', '--verbose', action='store_true', help='Whether to print verbose output')
   parser.add_argument('-o', '--outDirectory', required=True, help='Name of the output directory')
+  parser.add_argument('-b', '--batch', action='store_true', help='Whether this is a batch job, if it is, no interactive questions will be asked and answers will be assumed')
 
   args = parser.parse_args()
 
@@ -26,8 +27,9 @@ if __name__ == "__main__":
       print "The output directory does not exist, creating it"
     funk.make_sure_path_exists(args.outDirectory)
   else:
-    if not funk.query_yes_no("The output directory already exists and might contain files.\nAre you sure you want to continue?", "no"):
-      sys.exit(0)
+    if not args.batch:
+      if not funk.query_yes_no("The output directory already exists and might contain files.\nAre you sure you want to continue?", "no"):
+        sys.exit(0)
 
   import json
   configJson = json.load(open(args.configFile, "rb"))
