@@ -31,19 +31,6 @@ if __name__ == "__main__":
       if not funk.query_yes_no("The output directory already exists and might contain files.\nAre you sure you want to continue?", "no"):
         sys.exit(0)
 
-  print "testing the builder:"
-  tmp = funk.NetworkBuilder(args.configFile)
 
-  import json
-  configJson = json.load(open(args.configFile, "rb"))
-  if args.verbose:
-    print json.dumps(configJson, indent=4)
-
-  samples = {}
-  for samp in configJson["network"]["samples"]:
-    samples[samp["name"]] = samp
-    samples[samp["name"]]["json"] = json.load(open(samp["file"], "rb"))
-
-  if args.verbose:
-    print json.dumps(samples, indent=3)
+  myNetwork = funk.NetworkBuilder(args.configFile, batch=args.batch, verbose=args.verbose)
 
