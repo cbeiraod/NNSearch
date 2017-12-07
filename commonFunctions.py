@@ -8,10 +8,31 @@ class NetworkBuilder:
     import json
     self._rawSource = json.load(open(cfgJson, "rb"))
 
-    self._epochs    = self._rawSource["network"]["epochs"]
-    self._batchSize = self._rawSource["network"]["batchSize"]
-    self._seed      = self._rawSource["network"]["seed"]
-    self._kFolds    = self._rawSource["network"]["k-folds"]
+    self._epochs     = self._rawSource["network"]["epochs"]
+    self._batchSize  = self._rawSource["network"]["batchSize"]
+    self._kFolds     = 1
+    self._fraction   = 1.0
+    self._seed       = -1
+    if "k-folds" in self._rawSource["network"]:
+      self._kFolds   = self._rawSource["network"]["k-folds"]
+    if "fraction" in self._rawSource["network"]:
+      self._fraction = self._rawSource["network"]["fraction"]
+    if "seed" in self._rawSource["network"]:
+      self._seed     = self._rawSource["network"]["seed"]
+
+    if not isinstance(self._epochs, (int, long)):
+      raise TypeError("Epochs must be an integer")
+    if not isinstance(self._batchSize, (int, long)):
+      raise TypeError("Batch size must be an integer")
+    if not isinstance(self._kFolds, (int, long)):
+      raise TypeError("K-folds must be an integer")
+    if not (isinstance(self._fraction, float) and self._fraction > 0 and self._fraction <= 1.0):
+      raise TypeError("Fraction must be a double between 0 and 1")
+    if not isinstance(self._seed, (int, long)):
+      raise TypeError("Seed must be an integer")
+
+  def buildModel():
+    return None
 
 def make_sure_path_exists(path):
   import os
