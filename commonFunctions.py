@@ -1,4 +1,18 @@
 
+class NetworkBuilder:
+  """
+  A class to help handle reading the cfg file and then building/training the NN
+  """
+  def __init__(self, cfgJson, verbose=False, batch=False):
+
+    import json
+    self._rawSource = json.load(open(cfgJson, "rb"))
+
+    self._epochs    = self._rawSource["network"]["epochs"]
+    self._batchSize = self._rawSource["network"]["batchSize"]
+    self._seed      = self._rawSource["network"]["seed"]
+    self._kFolds    = self._rawSource["network"]["k-folds"]
+
 def make_sure_path_exists(path):
   import os
   import errno
