@@ -2,7 +2,8 @@ import commonFunctions as funk
 
 if __name__ == "__main__":
   import argparse
-  import os.path
+  import os
+  import sys
 
   parser = argparse.ArgumentParser(description='Process the command line options')
   parser.add_argument('-d', '--dryRun', action='store_true', help='Do a dry run (i.e. do not actually run the potentially dangerous commands but print them to the screen)')
@@ -19,6 +20,14 @@ if __name__ == "__main__":
     import errno
     #raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), args.configFile)
     raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), args.configFile)
+
+  if not os.path.isdir(args.outDirectory):
+    if args.verbose:
+      print "The output directory does not exist, creating it"
+    funk.make_sure_path_exists(args.outDirectory)
+  else:
+    if not funk.query_yes_no("The output directory already exists and might contain files.\nAre you sure you want to continue?", "no"):
+      sys.exit(0)
 
   import json
   configJson = json.load(open(args.configFile, "rb"))
