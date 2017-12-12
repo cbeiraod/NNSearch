@@ -41,3 +41,8 @@ if __name__ == "__main__":
 
 
   myNetwork = funk.NetworkBuilder(args.configFile, batch=args.batch, verbose=args.verbose)
+
+
+  #myNetwork.buildModel()
+  myNetwork.train()
+

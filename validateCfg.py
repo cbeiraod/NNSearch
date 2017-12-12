@@ -26,5 +26,7 @@ if __name__ == "__main__":
 
   validator = funk.NetworkBuilder(args.configFile, batch=True, verbose=args.verbose)
 
+  ## TODO: Add a check if the sample files exist
+
   print "No issues found"
 
