@@ -17,14 +17,14 @@ if __name__ == "__main__":
 
   import json
   configJson = json.load(open(args.configFile, "rb"))
-  if args.verbose:
-    print json.dumps(configJson, indent=4)
-
-  samples = {}
   for samp in configJson["network"]["samples"]:
-    samples[samp["name"]] = samp
-    samples[samp["name"]]["json"] = json.load(open(samp["file"], "rb"))
+    if not os.path.isfile(samp["file"]):
+      import errno
+      #raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), samp["file"])
+      raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), samp["file"] + " (sample: " + samp["name"] + ")")
 
-  if args.verbose:
-    print json.dumps(samples, indent=3)
+
+  validator = funk.NetworkBuilder(args.configFile, batch=True, verbose=args.verbose)
+
+  print "No issues found"
 

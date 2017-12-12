@@ -2,6 +2,7 @@
   "network":{
     "topology":{
       "type":"simple",
+      "activation":"relu",
       "nLayers":2,
       "neurons":20,
       "dropout":0
@@ -107,7 +108,7 @@
       }
     ],
     "preselection":"(DPhiJet1Jet2 < 2.5 || Jet2Pt < 60) && (Met > 280) && (HT > 200) && (isTight == 1) && (Jet1Pt > 110)",
-    "fraction":1,
+    "fraction":1.0,
     "samples":[
       {
         "name":"signal",
