@@ -103,39 +103,101 @@ class NetworkBuilder:
     self._verbose = verbose
     self._batch = batch
 
-    self._epochs     = self._rawSource["network"]["epochs"]
-    self._batchSize  = self._rawSource["network"]["batchSize"]
-    self._kFolds     = 1
-    self._fraction   = 1.0
-    self._seed       = -1
+    self.epochs     = self._rawSource["network"]["epochs"]
+    self.batchSize  = self._rawSource["network"]["batchSize"]
+    self.kFolds     = 1
+    self.fraction   = 1.0
+    self.seed       = -1
     if "k-folds" in self._rawSource["network"]:
-      self._kFolds   = self._rawSource["network"]["k-folds"]
+      self.kFolds   = self._rawSource["network"]["k-folds"]
     if "fraction" in self._rawSource["network"]:
-      self._fraction = self._rawSource["network"]["fraction"]
+      self.fraction = self._rawSource["network"]["fraction"]
     if "seed" in self._rawSource["network"]:
-      self._seed     = self._rawSource["network"]["seed"]
-
-    if not isinstance(self._epochs, (int, long)):
-      raise TypeError("Epochs must be an integer")
-    if not isinstance(self._batchSize, (int, long)):
-      raise TypeError("Batch size must be an integer")
-    if not isinstance(self._kFolds, (int, long)):
-      raise TypeError("K-folds must be an integer")
-    if not (isinstance(self._fraction, float)):
-      raise TypeError("Fraction must be a double")
-    if not isinstance(self._seed, (int, long)):
-      raise TypeError("Seed must be an integer")
-
-    if not (self._epochs <= 0):
-      raise ValueError("The number of epochs must be greater than 0")
-    if not (self._batchSize <= 0):
-      raise ValueError("The batch size must be greater than 0")
-    if not (self._kFolds <= 0):
-      raise ValueError("The number of cross validation folds must be greater than 0")
-    if not (self._fraction > 0 and self._fraction <= 1.0):
-      raise ValueError("Fraction must be between 0 and 1")
+      self.seed     = self._rawSource["network"]["seed"]
 
     self._branches = {}
+
+  @property
+  def epochs(self):
+    """The 'epochs' property"""
+    if self._verbose:
+      print "Getter of 'epochs' called"
+    return self._epochs
+  @epochs.setter
+  def epochs(self, value):
+    """Setter of the 'epochs' property"""
+    if isinstance(value, (int, long)) or (isinstance(value, float) and value.is_integer()):
+      if value <= 0:
+        raise ValueError("The number of epochs must be greater than 0")
+      else:
+        self._epochs = int(value)
+    else:
+      raise TypeError("Epochs must be an integer")
+
+  @property
+  def batchSize(self):
+    """The 'batchSize' property"""
+    if self._verbose:
+      print "Getter of 'batchSize' called"
+    return self._batchSize
+  @batchSize.setter
+  def batchSize(self, value):
+    """Setter of the 'batchSize' property"""
+    if isinstance(value, (int, long)) or (isinstance(value, float) and value.is_integer()):
+      if value <= 0:
+        raise ValueError("The batch size must be greater than 0")
+      else:
+        self._batchSize = int(value)
+    else:
+      raise TypeError("Batch size must be an integer")
+
+  @property
+  def kFolds(self):
+    """The 'kFolds' property"""
+    if self._verbose:
+      print "Getter of 'kFolds' called"
+    return self._kFolds
+  @kFolds.setter
+  def kFolds(self, value):
+    """Setter of the 'kFolds' property"""
+    if isinstance(value, (int, long)) or (isinstance(value, float) and value.is_integer()):
+      if value <= 0:
+        raise ValueError("The number of cross validation folds must be greater than 0")
+      else:
+        self._kFolds = int(value)
+    else:
+      raise TypeError("K-folds must be an integer")
+
+  @property
+  def fraction(self):
+    """The 'fraction' property"""
+    if self._verbose:
+      print "Getter of 'fraction' called"
+    return self._fraction
+  @fraction.setter
+  def fraction(self, value):
+    """Setter of the 'fraction' property"""
+    if isinstance(value, float):
+      if value <= 0 or value > 1:
+        raise ValueError("Fraction must be between 0 and 1")
+      else:
+        self._fraction = float(value)
+    else:
+      raise TypeError("Fraction must be a double")
+
+  @property
+  def seed(self):
+    """The 'seed' property"""
+    if self._verbose:
+      print "Getter of 'seed' called"
+    return self._seed
+  @seed.setter
+  def seed(self, value):
+    """Setter of the 'seed' property"""
+    if isinstance(value, (int, long)) or (isinstance(value, float) and value.is_integer()):
+      self._seed = int(value)
+    else:
+      raise TypeError("Seed must be an integer")
 
   def buildModel(self):
     return None
