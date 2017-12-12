@@ -1,5 +1,5 @@
 
-class BranchInformation:
+class BranchInformation(object):
   """
   A class to help handle the branches from the cfg files
   """
@@ -93,7 +93,25 @@ class BranchInformation:
       raise TypeError("isWeight must be a boolean")
     self._isWeight = value
 
-class NetworkBuilder:
+class NetworkTopology(object):
+  """
+  A class to help handle the network topology
+  """
+  def __init__(self, cfgJson, verbose = False, batch = False):
+    self._rawSource = cfgJson
+    self._verbose = verbose
+    self._batch = batch
+
+class NetworkOptimizer(object):
+  """
+  A class to help handle the network optimizer
+  """
+  def __init__(self, cfgJson, verbose = False, batch = False):
+    self._rawSource = cfgJson
+    self._verbose = verbose
+    self._batch = batch
+
+class NetworkBuilder(object):
   """
   A class to help handle reading the cfg file and then building/training the NN
   """
@@ -115,7 +133,13 @@ class NetworkBuilder:
     if "seed" in self._rawSource["network"]:
       self.seed     = self._rawSource["network"]["seed"]
 
-    self._branches = {}
+    self.branches = {}
+    for branch in self._rawSource["network"]["branches"]:
+      tmp = BranchInformation(branch, verbose=self._verbose, batch=self._batch)
+      self.branches[tmp.name] = tmp
+
+    self.topology  = NetworkTopology (self._rawSource["network"]["topology"],  verbose=self._verbose, batch=self._batch)
+    self.optimizer = NetworkOptimizer(self._rawSource["network"]["optimizer"], verbose=self._verbose, batch=self._batch)
 
   @property
   def epochs(self):
@@ -199,6 +223,48 @@ class NetworkBuilder:
     else:
       raise TypeError("Seed must be an integer")
 
+  @property
+  def branches(self):
+    """The 'branches' property"""
+    if self._verbose:
+      print "Getter of 'branches' called"
+    return self._branches
+  @branches.setter
+  def branches(self, value):
+    """Setter of the 'branches' property"""
+    if isinstance(value, dict):
+      self._branches = value
+    else:
+      raise TypeError("Branches must be a dictionary")
+
+  @property
+  def topology(self):
+    """The 'topology' property"""
+    if self._verbose:
+      print "Getter of 'topology' called"
+    return self._topology
+  @topology.setter
+  def topology(self, value):
+    """Setter of the 'topology' property"""
+    if isinstance(value, NetworkTopology):
+      self._topology = value
+    else:
+      raise TypeError("Topology must be a NetworkTopology")
+
+  @property
+  def optimizer(self):
+    """The 'optimizer' property"""
+    if self._verbose:
+      print "Getter of 'optimizer' called"
+    return self._optimizer
+  @optimizer.setter
+  def optimizer(self, value):
+    """Setter of the 'optimizer' property"""
+    if isinstance(value, NetworkOptimizer):
+      self._optimizer = value
+    else:
+      raise TypeError("Topology must be a NetworkOptimizer")
+
   def buildModel(self):
     return None
 
@@ -213,7 +279,7 @@ class NetworkBuilder:
     data = self.getData()
     features = self.getFeatures()
 
-    return model.fit(...)
+    #return model.fit(...)
 
 def make_sure_path_exists(path):
   import os
