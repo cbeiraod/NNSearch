@@ -1,14 +1,19 @@
 {
   "sample":{
     "type":"old",
-    "basePath":"/lstore/......./",
+    "basePath":"/home/diogo/LIP/DATA/",
+    "suffix":"skimmed",
     "components":[
       {
         "name":"stop550520",
         "tag":"stop (550,520)",
         "label":"\\tilde{t} \\left(550,520\\right)",
-        "trainFiles":[],
-        "testFiles":[],
+        "trainFiles":[
+          "T2DegStop_550_520"
+        ],
+        "testFiles":[
+          "T2DegStop_550_520"
+        ],
         "color":809,
         "lcolor":1,
         "lwidth":4,

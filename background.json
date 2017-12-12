@@ -1,14 +1,23 @@
 {
   "sample":{
     "type":"old",
-    "basePath":"/lstore/......./",
+    "basePath":"/home/diogo/LIP/DATA/",
+    "suffix":"skimmed",
     "components":[
       {
         "name":"ttbar",
         "tag":"ttbar",
         "label":"t\\bar{t}",
-        "trainFiles":[],
-        "testFiles":[],
+        "trainFiles":[
+          "TTJets_DiLepton",
+          "TTJets_SingleLeptonFromTbar",
+          "TTJets_SingleLeptonFromT"
+        ],
+        "testFiles":[
+          "TTJets_DiLepton",
+          "TTJets_SingleLeptonFromTbar",
+          "TTJets_SingleLeptonFromT"
+        ],
         "color":809,
         "lcolor":1,
         "lwidth":4,
@@ -18,12 +27,57 @@
         "name":"wjets",
         "tag":"wjets",
         "label":"w+jets",
-        "trainFiles":[],
-        "testFiles":[],
+        "trainFiles":[
+          "Wjets_100to200",
+          "Wjets_1200to2500",
+          "Wjets_200to400",
+          "Wjets_2500toInf",
+          "Wjets_400to600",
+          "Wjets_600to800",
+          "Wjets_70to100",
+          "Wjets_800to1200"
+        ],
+        "testFiles":[
+          "Wjets_100to200",
+          "Wjets_1200to2500",
+          "Wjets_200to400",
+          "Wjets_2500toInf",
+          "Wjets_400to600",
+          "Wjets_600to800",
+          "Wjets_70to100",
+          "Wjets_800to1200"
+        ],
         "color":8023,
         "lcolor":1,
         "lwidth":4,
         "lstyle":1
+      }
+      {
+        "name":"zjets",
+        "tag":"",
+        "label":"",
+        "trainFiles":[
+          "ZJetsToNuNu_HT100to200",
+          "ZJetsToNuNu_HT1200to2500",
+          "ZJetsToNuNu_HT200to400",
+          "ZJetsToNuNu_HT2500toInf",
+          "ZJetsToNuNu_HT400to600",
+          "ZJetsToNuNu_HT600to800",
+          "ZJetsToNuNu_HT800to1200"
+        ],
+        "testFiles":[
+          "ZJetsToNuNu_HT100to200",
+          "ZJetsToNuNu_HT1200to2500",
+          "ZJetsToNuNu_HT200to400",
+          "ZJetsToNuNu_HT2500toInf",
+          "ZJetsToNuNu_HT400to600",
+          "ZJetsToNuNu_HT600to800",
+          "ZJetsToNuNu_HT800to1200"
+        ],
+        "color":,
+        "lcolor":,
+        "lwidth":,
+        "lstyle":
       }
     ]
   }
