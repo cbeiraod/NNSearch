@@ -135,8 +135,23 @@ class NetworkBuilder:
     if not (self._fraction > 0 and self._fraction <= 1.0):
       raise ValueError("Fraction must be between 0 and 1")
 
-  def buildModel():
+    self._branches = {}
+
+  def buildModel(self):
     return None
+
+  def getData(self):
+    return None
+
+  def getFeatures(self):
+    return None
+
+  def train(self):
+    model = self.buildModel()
+    data = self.getData()
+    features = self.getFeatures()
+
+    return model.fit(...)
 
 def make_sure_path_exists(path):
   import os
