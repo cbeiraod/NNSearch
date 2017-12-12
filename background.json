@@ -2,8 +2,7 @@
   "sample":{
     "type":"old",
     "basePath":"/home/diogo/LIP/DATA/",
-    "trainPath":"train/",
-    "testPath":"test/",
+    "suffix":"skimmed",
     "components":[
       {
         "name":"ttbar",
