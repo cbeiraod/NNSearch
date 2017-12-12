@@ -1,7 +1,9 @@
 {
   "sample":{
     "type":"old",
-    "basePath":"/lstore/......./",
+    "basePath":"/home/diogo/LIP/DATA/",
+    "trainPath":"train/",
+    "testPath":"test/",
     "components":[
       {
         "name":"stop550520",
