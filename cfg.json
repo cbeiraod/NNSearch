@@ -27,6 +27,73 @@
         "isFeature":true
       },
       {
+        "name":"Met",
+        "tag":"",
+        "label":"E^{miss}_{T}",
+        "isFeature":true
+      },
+      {
+        "name":"mt",
+        "tag":"",
+        "label":"M_{T}",
+        "isFeature":true
+      },
+      {
+        "name":"LepPt",
+        "tag":"",
+        "label":"p_{T}\\left(l\\right)",
+        "isFeature":true
+      },
+      {
+        "name":"LepEta",
+        "tag":"",
+        "label":"",
+        "isFeature":true
+      },
+      {
+        "name":"LepChg",
+        "tag":"",
+        "label":"chg\\left(l\\right)",
+        "isFeature":true
+      },
+      {
+        "name":"HT",
+        "tag":"",
+        "label":"H_{T}",
+        "isFeature":true
+      },
+      {
+        "name":"NbLoose",
+        "tag":"",
+        "label":"N\\left(b loose\\right)",
+        "isFeature":true
+      },
+      {
+        "name":"Njet",
+        "tag":"",
+        "label":"N_{jets}",
+        "isFeature":true
+      },
+      {
+        "name":"JetHBpt",
+        "tag":"",
+        "label":"",
+        "isFeature":true
+      },
+      {
+        "name":"DrJetHBLep",
+        "tag":"",
+        "label":"",
+        "isFeature":true
+      },
+      {
+        "name":"JetHBCSV",
+        "tag":"",
+        "label":"",
+        "isFeature":true
+      },
+
+      {
         "name":"XS",
         "tag":"xsec [pb]",
         "label":"\\sigma [pb]",

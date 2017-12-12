@@ -4,7 +4,7 @@ if __name__ == "__main__":
   import argparse
   import os
   import sys
-
+  
   parser = argparse.ArgumentParser(description='Process the command line options')
   parser.add_argument('-d', '--dryRun', action='store_true', help='Do a dry run (i.e. do not actually run the potentially dangerous commands but print them to the screen)')
   parser.add_argument('-c', '--configFile', required=True, help='Configuration file describing the neural network topology and options as well as the samples to process')
@@ -43,4 +43,3 @@ if __name__ == "__main__":
 
   if args.verbose:
     print json.dumps(samples, indent=3)
-
