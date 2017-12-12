@@ -28,10 +28,17 @@ class NetworkBuilder:
       raise TypeError("K-folds must be an integer")
     if not (isinstance(self._fraction, float)):
       raise TypeError("Fraction must be a double")
-    if not (self._fraction > 0 and self._fraction <= 1.0):
-      raise ValueError("Fraction must be between 0 and 1")
     if not isinstance(self._seed, (int, long)):
       raise TypeError("Seed must be an integer")
+
+    if not (self._epochs <= 0):
+      raise ValueError("The number of epochs must be greater than 0")
+    if not (self._batchSize <= 0):
+      raise ValueError("The batch size must be greater than 0")
+    if not (self._kFolds <= 0):
+      raise ValueError("The number of cross validation folds must be greater than 0")
+    if not (self._fraction > 0 and self._fraction <= 1.0):
+      raise ValueError("Fraction must be between 0 and 1")
 
   def buildModel():
     return None
