@@ -201,17 +201,20 @@ class NetworkBuilder(object):
     self._verbose = verbose
     self._batch = batch
 
-    self.epochs     = self._rawSource["network"]["epochs"]
-    self.batchSize  = self._rawSource["network"]["batchSize"]
-    self.kFolds     = 1
-    self.fraction   = 1.0
-    self.seed       = -1
+    self.epochs       = self._rawSource["network"]["epochs"]
+    self.batchSize    = self._rawSource["network"]["batchSize"]
+    self.kFolds       = 1
+    self.fraction     = 1.0
+    self.seed         = -1
+    self.preselection = ""
     if "k-folds" in self._rawSource["network"]:
       self.kFolds   = self._rawSource["network"]["k-folds"]
     if "fraction" in self._rawSource["network"]:
       self.fraction = self._rawSource["network"]["fraction"]
     if "seed" in self._rawSource["network"]:
       self.seed     = self._rawSource["network"]["seed"]
+    if "preselection" in self._rawSource["network"]:
+      self.preselection = self._rawSource["network"]["preselection"]
 
     self.branches = {}
     for branch in self._rawSource["network"]["branches"]:
@@ -344,6 +347,19 @@ class NetworkBuilder(object):
       self._optimizer = value
     else:
       raise TypeError("Topology must be a NetworkOptimizer")
+
+  @property
+  def preselection(self):
+    """The 'preselection' property"""
+    if self._verbose:
+      print "Getter of 'preselection' called"
+    return self._preselection
+  @preselection.setter
+  def preselection(self, value):
+    """Setter of the 'preselection' property """
+    if not isinstance(value, basestring):
+      raise TypeError("preselection must be a string")
+    self._preselection = value
 
   def buildModel(self):
     return None
