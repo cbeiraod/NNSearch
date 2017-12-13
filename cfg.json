@@ -97,8 +97,7 @@
       {
         "name":"XS",
         "tag":"xsec [pb]",
-        "label":"\\sigma [pb]",
-        "isWeight":true
+        "label":"\\sigma [pb]"
       },
       {
         "name":"weight",
