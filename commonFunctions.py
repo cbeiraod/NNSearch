@@ -122,7 +122,7 @@ class NetworkOptimizer(object):
       if key == "optimizer":
         continue
       if self.optimizer in self._recognizedOptimizers and key not in self._availableKeys:
-        raise ValueError("the key '" + key + "' is not recognised for optimizer '" + self.optimizer + "'")
+        raise KeyError("the key '" + key + "' is not recognised for optimizer '" + self.optimizer + "'")
       #self.parameters[key.encode('ascii','ignore')] = value
       self.parameters[key] = value
 
