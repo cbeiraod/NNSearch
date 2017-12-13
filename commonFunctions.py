@@ -110,6 +110,86 @@ class NetworkOptimizer(object):
     self._rawSource = cfgJson
     self._verbose = verbose
     self._batch = batch
+    self._recognizedOptimizers = ["SGD", "sgd", "Adam", "adam", "Nadam", "nadam"]
+    self._availableKeys = []
+
+    if "optimizer" not in self._rawSource:
+      raise KeyError("No optimizer is defined")
+    self.optimizer = self._rawSource["optimizer"]
+
+    self.parameters = {}
+    for key, value in self._rawSource.items():
+      if key == "optimizer":
+        continue
+      if self.optimizer in self._recognizedOptimizers and key not in self._availableKeys:
+        raise ValueError("the key '" + key + "' is not recognised for optimizer '" + self.optimizer + "'")
+      #self.parameters[key.encode('ascii','ignore')] = value
+      self.parameters[key] = value
+
+  @property
+  def optimizer(self):
+    """The 'optimizer' property"""
+    if self._verbose:
+      print "Getter of 'optimizer' called"
+    return self._optimizer
+  @optimizer.setter
+  def optimizer(self, value):
+    """Setter of the 'optimizer' property """
+    if not isinstance(value, basestring):
+      raise TypeError("optimizer must be a string")
+    if value not in self._recognizedOptimizers:
+      print "A not recognised optimizer was chosen,",
+      if self._batch:
+        print " trusting that the parameters in the cfg are correctly set up"
+      else:
+        if not query_yes_no(" do you want to trust the parameters as in the cfg file?", "n"):
+          raise ValueError("not recognised optimizer")
+
+    import inspect
+    from keras import optimizers
+    existingOptimizers = []
+    for name in dir(optimizers):
+      element = getattr(optimizers, name)
+      if inspect.isclass(element):
+        existingOptimizers.append(name)
+    if value not in existingOptimizers:
+      raise ValueError("chosen optimizer does not exist")
+
+    self._optimizer = value
+
+    switchStatement = {
+      "SGD": lambda: ["clipnorm", "clipvalue", "lr", "momentum", "decay", "nesterov"],
+      "sgd": lambda: switchStatement["SGD"](),
+      "Adam": lambda: ["clipnorm", "clipvalue", "lr", "beta_1", "beta_2", "epsilon", "decay"],
+      "adam": lambda: switchStatement["Adam"](),
+      "Nadam": lambda: ["clipnorm", "clipvalue", "lr", "beta_1", "beta_2", "epsilon", "schedule_decay"],
+      "nadam": lambda: switchStatement["Nadam"]()
+    }
+
+    try:
+      self._availableKeys = switchStatement[self._optimizer]()
+    except KeyError:
+      self._availableKeys = []
+
+  @property
+  def parameters(self):
+    """The 'parameters' property"""
+    if self._verbose:
+      print "Getter of 'parameters' called"
+    return self._parameters
+  @parameters.setter
+  def parameters(self, value):
+    """Setter of the 'parameters' property """
+    if isinstance(value, dict):
+      self._parameters = value
+    else:
+      raise TypeError("Parameters must be a dictionary")
+
+  def build(self):
+    from keras import optimizers
+    element = getattr(optimizers, self.optimizer)
+    return element(**self.parameters)
+
 
 class NetworkBuilder(object):
   """

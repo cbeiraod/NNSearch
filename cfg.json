@@ -13,8 +13,8 @@
     "k-folds":1,
 
     "optimizer":{
-      "optimizer":"nadam",
-      "learnRate":0.003,
+      "optimizer":"adam",
+      "lr":0.003,
       "decay":0.15
     },
 
