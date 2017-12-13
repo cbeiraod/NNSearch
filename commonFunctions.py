@@ -190,6 +190,68 @@ class NetworkOptimizer(object):
     element = getattr(optimizers, self.optimizer)
     return element(**self.parameters)
 
+class NetworkSample(object):
+  """
+  A class to help handle reading the sample files
+  """
+  def __init__(self, cfgJson, preselection, fraction, branches, verbose = False, batch = False):
+    self._rawSource = cfgJson
+    self._verbose = verbose
+    self._batch = batch
+    self._preselection = preselection
+    self._fraction = fraction
+    self._branches = branches
+
+    if "name" not in self._rawSource:
+      raise KeyError("A sample with no name is defined")
+    self.name = self._rawSource["name"]
+
+    if "cfgFile" not in self._rawSource:
+      raise KeyError("A sample with no cfgFile is defined")
+    self.cfgFile = self._rawSource["cfgFile"]
+
+    self.excludeWeight = []
+    if "excludeWeight" in self._rawSource:
+      self.excludeWeight = self._rawSource["excludeWeight"]
+
+  @property
+  def name(self):
+    """The 'name' property"""
+    if self._verbose:
+      print "Getter of 'name' called"
+    return self._name
+  @name.setter
+  def name(self, value):
+    """Setter of the 'name' property """
+    if not isinstance(value, basestring):
+      raise TypeError("name must be a string")
+    self._name = value
+
+  @property
+  def cfgFile(self):
+    """The 'cfgFile' property"""
+    if self._verbose:
+      print "Getter of 'cfgFile' called"
+    return self._cfgFile
+  @cfgFile.setter
+  def cfgFile(self, value):
+    """Setter of the 'cfgFile' property """
+    if not isinstance(value, basestring):
+      raise TypeError("cfgFile must be a string")
+    self._cfgFile = value
+
+  @property
+  def excludeWeight(self):
+    """The 'excludeWeight' property"""
+    if self._verbose:
+      print "Getter of 'excludeWeight' called"
+    return self._excludeWeight
+  @excludeWeight.setter
+  def excludeWeight(self, value):
+    """Setter of the 'excludeWeight' property """
+    if not isinstance(value, list):
+      raise TypeError("excludeWeight must be a list")
+    self._excludeWeight = value
 
 class NetworkBuilder(object):
   """
@@ -223,6 +285,11 @@ class NetworkBuilder(object):
 
     self.topology  = NetworkTopology (self._rawSource["network"]["topology"],  verbose=self._verbose, batch=self._batch)
     self.optimizer = NetworkOptimizer(self._rawSource["network"]["optimizer"], verbose=self._verbose, batch=self._batch)
+
+    self.samples = []
+    for sample in self._rawSource["network"]["samples"]:
+      tmp = NetworkSample(sample, self.preselection, self.fraction, self.branches, verbose=self._verbose, batch=self._batch)
+      self.samples.append(tmp)
 
   @property
   def epochs(self):
@@ -360,6 +427,19 @@ class NetworkBuilder(object):
     if not isinstance(value, basestring):
       raise TypeError("preselection must be a string")
     self._preselection = value
+
+  @property
+  def samples(self):
+    """The 'samples' property"""
+    if self._verbose:
+      print "Getter of 'samples' called"
+    return self._samples
+  @samples.setter
+  def samples(self, value):
+    """Setter of the 'samples' property """
+    if not isinstance(value, list):
+      raise TypeError("samples must be a list")
+    self._samples = value
 
   def buildModel(self):
     return None

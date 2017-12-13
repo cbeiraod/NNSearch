@@ -111,14 +111,14 @@
     "samples":[
       {
         "name":"signal",
-        "file":"signal.json",
+        "cfgFile":"signal.json",
         "excludeWeight":[
           "XS"
         ]
       },
       {
         "name":"background",
-        "file":"background.json"
+        "cfgFile":"background.json"
       }
     ]
   }
