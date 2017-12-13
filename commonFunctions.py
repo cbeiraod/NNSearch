@@ -101,6 +101,7 @@ class NetworkTopology(object):
     self._rawSource = cfgJson
     self._verbose = verbose
     self._batch = batch
+
     self.type = self._rawSource["type"]
     self.activation = self._rawSource["activation"]
     self.nLayers = self._rawSource["nLayers"]
@@ -182,8 +183,8 @@ class NetworkTopology(object):
   @dropout.setter
   def dropout(self, value):
     """Setter of the 'dropout' property"""
-    if isinstance(value, (int, float)):
-      if value < 0 or value > 1:
+    if isinstance(value, (int, long, float)):
+      if value < 0 or value >= 1:
         raise ValueError("Fraction must be between 0 and 1")
       else:
         self._dropout = float(value)
