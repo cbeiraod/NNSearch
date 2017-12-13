@@ -101,6 +101,23 @@ class NetworkTopology(object):
     self._rawSource = cfgJson
     self._verbose = verbose
     self._batch = batch
+    self.type = self._rawSource["type"]
+
+  @property
+  def type(self):
+    """This is 'type' property"""
+    if self._verbose:
+        print "Getter of 'type' is called"
+    return self._type
+  @type.setter
+  def type(self, value):
+    """Setter of 'type' property"""
+    if not isinstance(value, basestring):
+        raise TypeError("type must be a string")
+    allTypes = ['simple']
+    if value not in allTypes:
+        raise ValueError("type is not a recognized type")
+    self._type = value
 
 class NetworkOptimizer(object):
   """
@@ -319,4 +336,3 @@ def query_yes_no(question, default=None):
       return answers[choice]
     else:
       sys.stdout.write("Please respond with 'yes' or 'no' (or 'y' or 'n').\n")
-
