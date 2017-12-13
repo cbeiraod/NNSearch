@@ -214,6 +214,9 @@ class NetworkSample(object):
     if "excludeWeight" in self._rawSource:
       self.excludeWeight = self._rawSource["excludeWeight"]
 
+    import json
+    self._rawCfg = json.load(open(self.cfgFile, "rb"))
+
   @property
   def name(self):
     """The 'name' property"""
@@ -252,6 +255,32 @@ class NetworkSample(object):
     if not isinstance(value, list):
       raise TypeError("excludeWeight must be a list")
     self._excludeWeight = value
+
+  @property
+  def type(self):
+    """The 'type' property"""
+    if self._verbose:
+      print "Getter of 'type' called"
+    return self._type
+  @type.setter
+  def type(self, value):
+    """Setter of the 'type' property """
+    if not isinstance(value, basestring):
+      raise TypeError("type must be a string")
+    self._type = value
+
+  @property
+  def basePath(self):
+    """The 'basePath' property"""
+    if self._verbose:
+      print "Getter of 'basePath' called"
+    return self._basePath
+  @basePath.setter
+  def basePath(self, value):
+    """Setter of the 'basePath' property """
+    if not isinstance(value, basestring):
+      raise TypeError("basePath must be a string")
+    self._basePath = value
 
 class NetworkBuilder(object):
   """
