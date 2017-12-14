@@ -190,6 +190,95 @@ class NetworkTopology(object):
     else:
       raise TypeError("dropout must be a double")
 
+    self.type = self._rawSource["type"]
+    self.activation = self._rawSource["activation"]
+    self.nLayers = self._rawSource["nLayers"]
+    self.neurons = self._rawSource["neurons"]
+    self.dropout = self._rawSource["dropout"]
+
+  @property
+  def type(self):
+    """This is 'type' property"""
+    if self._verbose:
+        print "Getter of 'type' is called"
+    return self._type
+  @type.setter
+  def type(self, value):
+    """Setter of 'type' property"""
+    if not isinstance(value, basestring):
+        raise TypeError("type must be a string")
+    allTypes = ['simple']
+    if value not in allTypes:
+        raise ValueError("type is not a recognized type")
+    self._type = value
+
+  @property
+  def activation(self):
+    """This is 'activation' property"""
+    if self._verbose:
+        print "Getter of 'activation' is called"
+    return self._activation
+  @activation.setter
+  def activation(self, value):
+    """Setter of 'activation' property"""
+    if not isinstance(value, basestring):
+        raise TypeError("activation must be a string")
+    allActivations = ['relu']
+    if value not in allActivations:
+        raise ValueError("activation is not a recognized activation")
+    self._activation = value
+
+  @property
+  def nLayers(self):
+    """The 'nLayers' property"""
+    if self._verbose:
+      print "Getter of 'nLayers' called"
+    return self._nLayers
+  @nLayers.setter
+  def nLayers(self, value):
+    """Setter of the 'nLayers' property"""
+    if isinstance(value, (int, long)) or (isinstance(value, float) and value.is_integer()):
+      if value <= 0:
+        raise ValueError("The number of nLayers must be greater than 0")
+      else:
+        self._nLayers = int(value)
+    else:
+      raise TypeError("nLayers must be an integer")
+
+  @property
+  def neurons(self):
+    """The 'neurons' property"""
+    if self._verbose:
+      print "Getter of 'neurons' called"
+    return self._neurons
+  @neurons.setter
+  def neurons(self, value):
+    """Setter of the 'neurons' property"""
+    if isinstance(value, (int, long)) or (isinstance(value, float) and value.is_integer()):
+      if value <= 0:
+        raise ValueError("The number of neurons must be greater than 0")
+      else:
+        self._neurons = int(value)
+    else:
+      raise TypeError("neurons must be an integer")
+
+  @property
+  def dropout(self):
+    """The 'dropout' property"""
+    if self._verbose:
+      print "Getter of 'dropout' called"
+    return self._dropout
+  @dropout.setter
+  def dropout(self, value):
+    """Setter of the 'dropout' property"""
+    if isinstance(value, (int, long, float)):
+      if value < 0 or value >= 1:
+        raise ValueError("Fraction must be between 0 and 1")
+      else:
+        self._dropout = float(value)
+    else:
+      raise TypeError("dropout must be a double")
+
 class NetworkOptimizer(object):
   """
   A class to help handle the network optimizer
@@ -198,6 +287,177 @@ class NetworkOptimizer(object):
     self._rawSource = cfgJson
     self._verbose = verbose
     self._batch = batch
+    self._recognizedOptimizers = ["SGD", "sgd", "Adam", "adam", "Nadam", "nadam"]
+    self._availableKeys = []
+
+    if "optimizer" not in self._rawSource:
+      raise KeyError("No optimizer is defined")
+    self.optimizer = self._rawSource["optimizer"]
+
+    self.parameters = {}
+    for key, value in self._rawSource.items():
+      if key == "optimizer":
+        continue
+      if self.optimizer in self._recognizedOptimizers and key not in self._availableKeys:
+        raise KeyError("the key '" + key + "' is not recognised for optimizer '" + self.optimizer + "'")
+      #self.parameters[key.encode('ascii','ignore')] = value
+      self.parameters[key] = value
+
+  @property
+  def optimizer(self):
+    """The 'optimizer' property"""
+    if self._verbose:
+      print "Getter of 'optimizer' called"
+    return self._optimizer
+  @optimizer.setter
+  def optimizer(self, value):
+    """Setter of the 'optimizer' property """
+    if not isinstance(value, basestring):
+      raise TypeError("optimizer must be a string")
+    if value not in self._recognizedOptimizers:
+      print "A not recognised optimizer was chosen,",
+      if self._batch:
+        print " trusting that the parameters in the cfg are correctly set up"
+      else:
+        if not query_yes_no(" do you want to trust the parameters as in the cfg file?", "n"):
+          raise ValueError("not recognised optimizer")
+
+    import inspect
+    from keras import optimizers
+    existingOptimizers = []
+    for name in dir(optimizers):
+      element = getattr(optimizers, name)
+      if inspect.isclass(element):
+        existingOptimizers.append(name)
+    if value not in existingOptimizers:
+      raise ValueError("chosen optimizer does not exist")
+
+    self._optimizer = value
+
+    switchStatement = {
+      "SGD": lambda: ["clipnorm", "clipvalue", "lr", "momentum", "decay", "nesterov"],
+      "sgd": lambda: switchStatement["SGD"](),
+      "Adam": lambda: ["clipnorm", "clipvalue", "lr", "beta_1", "beta_2", "epsilon", "decay"],
+      "adam": lambda: switchStatement["Adam"](),
+      "Nadam": lambda: ["clipnorm", "clipvalue", "lr", "beta_1", "beta_2", "epsilon", "schedule_decay"],
+      "nadam": lambda: switchStatement["Nadam"]()
+    }
+
+    try:
+      self._availableKeys = switchStatement[self._optimizer]()
+    except KeyError:
+      self._availableKeys = []
+
+  @property
+  def parameters(self):
+    """The 'parameters' property"""
+    if self._verbose:
+      print "Getter of 'parameters' called"
+    return self._parameters
+  @parameters.setter
+  def parameters(self, value):
+    """Setter of the 'parameters' property """
+    if isinstance(value, dict):
+      self._parameters = value
+    else:
+      raise TypeError("Parameters must be a dictionary")
+
+  def build(self):
+    from keras import optimizers
+    element = getattr(optimizers, self.optimizer)
+    return element(**self.parameters)
+
+class NetworkSample(object):
+  """
+  A class to help handle reading the sample files
+  """
+  def __init__(self, cfgJson, preselection, fraction, branches, verbose = False, batch = False):
+    self._rawSource = cfgJson
+    self._verbose = verbose
+    self._batch = batch
+    self._preselection = preselection
+    self._fraction = fraction
+    self._branches = branches
+
+    if "name" not in self._rawSource:
+      raise KeyError("A sample with no name is defined")
+    self.name = self._rawSource["name"]
+
+    if "cfgFile" not in self._rawSource:
+      raise KeyError("A sample with no cfgFile is defined")
+    self.cfgFile = self._rawSource["cfgFile"]
+
+    self.excludeWeight = []
+    if "excludeWeight" in self._rawSource:
+      self.excludeWeight = self._rawSource["excludeWeight"]
+
+    import json
+    self._rawCfg = json.load(open(self.cfgFile, "rb"))
+
+  @property
+  def name(self):
+    """The 'name' property"""
+    if self._verbose:
+      print "Getter of 'name' called"
+    return self._name
+  @name.setter
+  def name(self, value):
+    """Setter of the 'name' property """
+    if not isinstance(value, basestring):
+      raise TypeError("name must be a string")
+    self._name = value
+
+  @property
+  def cfgFile(self):
+    """The 'cfgFile' property"""
+    if self._verbose:
+      print "Getter of 'cfgFile' called"
+    return self._cfgFile
+  @cfgFile.setter
+  def cfgFile(self, value):
+    """Setter of the 'cfgFile' property """
+    if not isinstance(value, basestring):
+      raise TypeError("cfgFile must be a string")
+    self._cfgFile = value
+
+  @property
+  def excludeWeight(self):
+    """The 'excludeWeight' property"""
+    if self._verbose:
+      print "Getter of 'excludeWeight' called"
+    return self._excludeWeight
+  @excludeWeight.setter
+  def excludeWeight(self, value):
+    """Setter of the 'excludeWeight' property """
+    if not isinstance(value, list):
+      raise TypeError("excludeWeight must be a list")
+    self._excludeWeight = value
+
+  @property
+  def type(self):
+    """The 'type' property"""
+    if self._verbose:
+      print "Getter of 'type' called"
+    return self._type
+  @type.setter
+  def type(self, value):
+    """Setter of the 'type' property """
+    if not isinstance(value, basestring):
+      raise TypeError("type must be a string")
+    self._type = value
+
+  @property
+  def basePath(self):
+    """The 'basePath' property"""
+    if self._verbose:
+      print "Getter of 'basePath' called"
+    return self._basePath
+  @basePath.setter
+  def basePath(self, value):
+    """Setter of the 'basePath' property """
+    if not isinstance(value, basestring):
+      raise TypeError("basePath must be a string")
+    self._basePath = value
 
 class NetworkBuilder(object):
   """
@@ -209,17 +469,20 @@ class NetworkBuilder(object):
     self._verbose = verbose
     self._batch = batch
 
-    self.epochs     = self._rawSource["network"]["epochs"]
-    self.batchSize  = self._rawSource["network"]["batchSize"]
-    self.kFolds     = 1
-    self.fraction   = 1.0
-    self.seed       = -1
+    self.epochs       = self._rawSource["network"]["epochs"]
+    self.batchSize    = self._rawSource["network"]["batchSize"]
+    self.kFolds       = 1
+    self.fraction     = 1.0
+    self.seed         = -1
+    self.preselection = ""
     if "k-folds" in self._rawSource["network"]:
       self.kFolds   = self._rawSource["network"]["k-folds"]
     if "fraction" in self._rawSource["network"]:
       self.fraction = self._rawSource["network"]["fraction"]
     if "seed" in self._rawSource["network"]:
       self.seed     = self._rawSource["network"]["seed"]
+    if "preselection" in self._rawSource["network"]:
+      self.preselection = self._rawSource["network"]["preselection"]
 
     self.branches = {}
     for branch in self._rawSource["network"]["branches"]:
@@ -228,6 +491,11 @@ class NetworkBuilder(object):
 
     self.topology  = NetworkTopology (self._rawSource["network"]["topology"],  verbose=self._verbose, batch=self._batch)
     self.optimizer = NetworkOptimizer(self._rawSource["network"]["optimizer"], verbose=self._verbose, batch=self._batch)
+
+    self.samples = []
+    for sample in self._rawSource["network"]["samples"]:
+      tmp = NetworkSample(sample, self.preselection, self.fraction, self.branches, verbose=self._verbose, batch=self._batch)
+      self.samples.append(tmp)
 
   @property
   def epochs(self):
@@ -352,6 +620,32 @@ class NetworkBuilder(object):
       self._optimizer = value
     else:
       raise TypeError("Topology must be a NetworkOptimizer")
+
+  @property
+  def preselection(self):
+    """The 'preselection' property"""
+    if self._verbose:
+      print "Getter of 'preselection' called"
+    return self._preselection
+  @preselection.setter
+  def preselection(self, value):
+    """Setter of the 'preselection' property """
+    if not isinstance(value, basestring):
+      raise TypeError("preselection must be a string")
+    self._preselection = value
+
+  @property
+  def samples(self):
+    """The 'samples' property"""
+    if self._verbose:
+      print "Getter of 'samples' called"
+    return self._samples
+  @samples.setter
+  def samples(self, value):
+    """Setter of the 'samples' property """
+    if not isinstance(value, list):
+      raise TypeError("samples must be a list")
+    self._samples = value
 
   def buildModel(self):
     return None

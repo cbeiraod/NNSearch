@@ -13,8 +13,8 @@
     "k-folds":1,
 
     "optimizer":{
-      "optimizer":"nadam",
-      "learnRate":0.003,
+      "optimizer":"adam",
+      "lr":0.003,
       "decay":0.15
     },
 
@@ -97,8 +97,7 @@
       {
         "name":"XS",
         "tag":"xsec [pb]",
-        "label":"\\sigma [pb]",
-        "isWeight":true
+        "label":"\\sigma [pb]"
       },
       {
         "name":"weight",
@@ -112,14 +111,14 @@
     "samples":[
       {
         "name":"signal",
-        "file":"signal.json",
+        "cfgFile":"signal.json",
         "excludeWeight":[
           "XS"
         ]
       },
       {
         "name":"background",
-        "file":"background.json"
+        "cfgFile":"background.json"
       }
     ]
   }

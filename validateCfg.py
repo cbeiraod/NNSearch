@@ -18,15 +18,15 @@ if __name__ == "__main__":
   import json
   configJson = json.load(open(args.configFile, "rb"))
   for samp in configJson["network"]["samples"]:
-    if not os.path.isfile(samp["file"]):
+    if not os.path.isfile(samp["cfgFile"]):
       import errno
       #raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), samp["file"])
-      raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), samp["file"] + " (sample: " + samp["name"] + ")")
+      raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), samp["cfgFile"] + " (sample: " + samp["name"] + ")")
+
+  ## TODO: Add a check if the sample files exist, the ones specified in the cfgFile
 
 
   validator = funk.NetworkBuilder(args.configFile, batch=True, verbose=args.verbose)
-
-  ## TODO: Add a check if the sample files exist
 
   print "No issues found"
 
