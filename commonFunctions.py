@@ -306,6 +306,14 @@ class NetworkSample(object):
     import json
     self._rawCfg = json.load(open(self.cfgFile, "rb"))
 
+    if "basePath" not in self._rawCfg["sample"]:
+      raise KeyError("sample '" + self.name + "' does not have a basePath")
+    self.basePath = self._rawCfg["sample"]["basePath"]
+
+    self.type = "new"
+    if "type" in self._rawCfg["sample"]:
+      self.type = self._rawCfg["sample"]["type"]
+
   @property
   def name(self):
     """The 'name' property"""
@@ -356,6 +364,9 @@ class NetworkSample(object):
     """Setter of the 'type' property """
     if not isinstance(value, basestring):
       raise TypeError("type must be a string")
+    validTypes = ["new", "old"]
+    if value not in validTypes:
+      raise ValueError("Unknown type '" + value + "'")
     self._type = value
 
   @property
@@ -369,7 +380,25 @@ class NetworkSample(object):
     """Setter of the 'basePath' property """
     if not isinstance(value, basestring):
       raise TypeError("basePath must be a string")
+    import os
+    if not os.path.isdir(value):
+      import errno
+      #raise OSError("'" + value + "' is not a valid path")
+      raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), value + " (from file '" + self.cfgFile + "')")
     self._basePath = value
+
+  @property
+  def suffix(self):
+    """The 'suffix' property"""
+    if self._verbose:
+      print "Getter of 'suffix' called"
+    return self._suffix
+  @suffix.setter
+  def suffix(self, value):
+    """Setter of the 'suffix' property """
+    if not isinstance(value, basestring):
+      raise TypeError("suffix must be a string")
+    self._suffix = value
 
 class NetworkBuilder(object):
   """
