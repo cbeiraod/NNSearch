@@ -74,10 +74,10 @@
           "ZJetsToNuNu_HT600to800",
           "ZJetsToNuNu_HT800to1200"
         ],
-        "color":,
-        "lcolor":,
-        "lwidth":,
-        "lstyle":
+        "color":802,
+        "lcolor":1,
+        "lwidth":4,
+        "lstyle":1
       }
     ]
   }
