@@ -279,6 +279,17 @@ class NetworkOptimizer(object):
     element = getattr(optimizers, self.optimizer)
     return element(**self.parameters)
 
+class SampleComponents(objects):
+  """
+  A class to help handle reading the sample components
+  """
+  def __init__(self, cfgJson, sampleType, basePath, verbose = False, batch = False):
+    self._rawSource = cfgJson
+    self._verbose = verbose
+    self._batch = batch
+    self._sampleType = sampleType
+    self._basePath = basePath
+
 class NetworkSample(object):
   """
   A class to help handle reading the sample files
@@ -313,6 +324,17 @@ class NetworkSample(object):
     self.type = "new"
     if "type" in self._rawCfg["sample"]:
       self.type = self._rawCfg["sample"]["type"]
+
+    self.suffix = ""
+    if "suffix" in self._rawCfg["sample"]:
+      self.suffix = self._rawCfg["sample"]["suffix"]
+
+    self.components = {}
+    if "components" not in self._rawCfg["sample"]:
+      raise KeyError("sample '" + self.name + "' does not have any components")
+    for component in self._rawCfg["sample"]["components"]:
+      tmp = SampleComponents(component)
+      self.components[tmp.name] = tmp
 
   @property
   def name(self):
@@ -399,6 +421,20 @@ class NetworkSample(object):
     if not isinstance(value, basestring):
       raise TypeError("suffix must be a string")
     self._suffix = value
+
+  @property
+  def components(self):
+    """The 'components' property"""
+    if self._verbose:
+      print "Getter of 'components' called"
+    return self._components
+  @components.setter
+  def components(self, value):
+    """Setter of the 'components' property"""
+    if isinstance(value, dict):
+      self._components = value
+    else:
+      raise TypeError("Components must be a dictionary")
 
 class NetworkBuilder(object):
   """
