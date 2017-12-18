@@ -381,10 +381,7 @@ class SampleComponents(objects):
   def lcolor(self, value):
     """Setter of the 'lcolor' property"""
     if isinstance(value, (int, long)) or (isinstance(value, float) and value.is_integer()):
-      if value <= 0:
-        raise ValueError("The lcolor must be greater than 0")
-      else:
-        self._lcolor = int(value)
+      self._lcolor = int(value)
     else:
       raise TypeError("lcolor must be an integer")
 
@@ -415,8 +412,8 @@ class SampleComponents(objects):
   def lstyle(self, value):
     """Setter of the 'lstyle' property"""
     if isinstance(value, (int, long)) or (isinstance(value, float) and value.is_integer()):
-      if value <= 0:
-        raise ValueError("The lstyle must be greater than 0")
+      if value <= 0 or value > 10:
+        raise ValueError("The lstyle must be greater than 0 and smaller or equal to 10")
       else:
         self._lstyle = int(value)
     else:
