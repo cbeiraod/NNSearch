@@ -460,6 +460,45 @@ class SampleComponents(objects):
     else:
       raise TypeError("lstyle must be an integer")
 
+  @property
+  def files(self):
+    """The 'files' property"""
+    if self._verbose:
+      print "Getter of 'files' called"
+    return self._files
+  @files.setter
+  def files(self, value):
+    """Setter of the 'files' property """
+    if not isinstance(value, list):
+      raise TypeError("files must be a list")
+    self._files = value
+
+  @property
+  def testFiles(self):
+    """The 'testFiles' property"""
+    if self._verbose:
+      print "Getter of 'testFiles' called"
+    return self._testFiles
+  @testFiles.setter
+  def testFiles(self, value):
+    """Setter of the 'testFiles' property """
+    if not isinstance(value, list):
+      raise TypeError("testFiles must be a list")
+    self._testFiles = value
+
+  @property
+  def trainFiles(self):
+    """The 'trainFiles' property"""
+    if self._verbose:
+      print "Getter of 'trainFiles' called"
+    return self._trainFiles
+  @trainFiles.setter
+  def trainFiles(self, value):
+    """Setter of the 'trainFiles' property """
+    if not isinstance(value, list):
+      raise TypeError("trainFiles must be a list")
+    self._trainFiles = value
+
 class NetworkSample(object):
   """
   A class to help handle reading the sample files
