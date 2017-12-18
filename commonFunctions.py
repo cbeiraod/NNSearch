@@ -112,32 +112,32 @@ class NetworkTopology(object):
   def type(self):
     """This is 'type' property"""
     if self._verbose:
-        print "Getter of 'type' is called"
+      print "Getter of 'type' is called"
     return self._type
   @type.setter
   def type(self, value):
     """Setter of 'type' property"""
     if not isinstance(value, basestring):
-        raise TypeError("type must be a string")
+      raise TypeError("type must be a string")
     allTypes = ['simple']
     if value not in allTypes:
-        raise ValueError("type is not a recognized type")
+      raise ValueError("type is not a recognized type")
     self._type = value
 
   @property
   def activation(self):
     """This is 'activation' property"""
     if self._verbose:
-        print "Getter of 'activation' is called"
+      print "Getter of 'activation' is called"
     return self._activation
   @activation.setter
   def activation(self, value):
     """Setter of 'activation' property"""
     if not isinstance(value, basestring):
-        raise TypeError("activation must be a string")
+      raise TypeError("activation must be a string")
     allActivations = ['relu']
     if value not in allActivations:
-        raise ValueError("activation is not a recognized activation")
+      raise ValueError("activation is not a recognized activation")
     self._activation = value
 
   @property
