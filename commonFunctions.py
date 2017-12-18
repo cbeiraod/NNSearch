@@ -283,12 +283,13 @@ class SampleComponents(objects):
   """
   A class to help handle reading the sample components
   """
-  def __init__(self, cfgJson, sampleType, basePath, verbose = False, batch = False):
+  def __init__(self, cfgJson, sampleType, basePath, suffix = "", verbose = False, batch = False):
     self._rawSource = cfgJson
     self._verbose = verbose
     self._batch = batch
     self._sampleType = sampleType
     self._basePath = basePath
+    self._suffix = suffix
 
     if "name" not in self._rawSource:
       raise KeyError("A component with no name is defined")
@@ -317,6 +318,46 @@ class SampleComponents(objects):
     self.lstyle = 1
     if "lstyle" in self._rawSource:
       self.lstyle = self._rawSource["lstyle"]
+
+    import os.path
+    if self._sampleType == "unified":
+      self.files = []
+      if "files" not in self._rawSource:
+        raise KeyError("A component with no files is defined")
+      for file in self._rawSource["files"]:
+        filename = self.basePath + "/" + file
+        if suffix not "":
+          filename = filename + "_" + suffix
+        filename = filename + ".root"
+        if not os.path.isfile(filename):
+          import errno
+          raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), file + " (component: " + self.name + ")")
+        self.files.append(file)
+    elif self._sampleType == "legacy":
+      self.testFiles = []
+      self.trainFiles = []
+      if "testFiles" not in self._rawSource:
+        raise KeyError("A component with no testFiles is defined")
+      if "trainFiles" not in self._rawSource:
+        raise KeyError("A component with no trainFiles is defined")
+      for file in self._rawSource["testFiles"]:
+        filename = self.basePath + "/" + file
+        if suffix not "":
+          filename = filename + "_" + suffix
+        filename = filename + ".root"
+        if not os.path.isfile(filename):
+          import errno
+          raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), file + " (component: " + self.name + ")")
+        self.testFiles.append(file)
+      for file in self._rawSource["trainFiles"]:
+        filename = self.basePath + "/" + file
+        if suffix not "":
+          filename = filename + "_" + suffix
+        filename = filename + ".root"
+        if not os.path.isfile(filename):
+          import errno
+          raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), file + " (component: " + self.name + ")")
+        self.trainFiles.append(file)
 
   @property
   def name(self):
@@ -450,7 +491,7 @@ class NetworkSample(object):
       raise KeyError("sample '" + self.name + "' does not have a basePath")
     self.basePath = self._rawCfg["sample"]["basePath"]
 
-    self.type = "new"
+    self.type = "unified"
     if "type" in self._rawCfg["sample"]:
       self.type = self._rawCfg["sample"]["type"]
 
@@ -462,7 +503,7 @@ class NetworkSample(object):
     if "components" not in self._rawCfg["sample"]:
       raise KeyError("sample '" + self.name + "' does not have any components")
     for component in self._rawCfg["sample"]["components"]:
-      tmp = SampleComponents(component, self.type, self.basePath, verbose = self._verbose, batch = self._batch)
+      tmp = SampleComponents(component, self.type, self.basePath, suffix = self.suffix, verbose = self._verbose, batch = self._batch)
       self.components[tmp.name] = tmp
 
   @property
@@ -515,7 +556,7 @@ class NetworkSample(object):
     """Setter of the 'type' property """
     if not isinstance(value, basestring):
       raise TypeError("type must be a string")
-    validTypes = ["new", "old"]
+    validTypes = ["unified", "legacy"]
     if value not in validTypes:
       raise ValueError("Unknown type '" + value + "'")
     self._type = value

@@ -1,6 +1,6 @@
 {
   "sample":{
-    "type":"old",
+    "type":"legacy",
     "basePath":"/home/diogo/LIP/DATA/",
     "suffix":"skimmed",
     "components":[
