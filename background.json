@@ -9,14 +9,14 @@
         "tag":"ttbar",
         "label":"t\\bar{t}",
         "trainFiles":[
-          "TTJets_DiLepton",
-          "TTJets_SingleLeptonFromTbar",
-          "TTJets_SingleLeptonFromT"
+          "train/TTJets_DiLepton",
+          "train/TTJets_SingleLeptonFromTbar",
+          "train/TTJets_SingleLeptonFromT"
         ],
         "testFiles":[
-          "TTJets_DiLepton",
-          "TTJets_SingleLeptonFromTbar",
-          "TTJets_SingleLeptonFromT"
+          "test/TTJets_DiLepton",
+          "test/TTJets_SingleLeptonFromTbar",
+          "test/TTJets_SingleLeptonFromT"
         ],
         "color":809,
         "lcolor":1,
@@ -28,24 +28,24 @@
         "tag":"wjets",
         "label":"w+jets",
         "trainFiles":[
-          "Wjets_100to200",
-          "Wjets_1200to2500",
-          "Wjets_200to400",
-          "Wjets_2500toInf",
-          "Wjets_400to600",
-          "Wjets_600to800",
-          "Wjets_70to100",
-          "Wjets_800to1200"
+          "train/Wjets_100to200",
+          "train/Wjets_1200to2500",
+          "train/Wjets_200to400",
+          "train/Wjets_2500toInf",
+          "train/Wjets_400to600",
+          "train/Wjets_600to800",
+          "train/Wjets_70to100",
+          "train/Wjets_800to1200"
         ],
         "testFiles":[
-          "Wjets_100to200",
-          "Wjets_1200to2500",
-          "Wjets_200to400",
-          "Wjets_2500toInf",
-          "Wjets_400to600",
-          "Wjets_600to800",
-          "Wjets_70to100",
-          "Wjets_800to1200"
+          "test/Wjets_100to200",
+          "test/Wjets_1200to2500",
+          "test/Wjets_200to400",
+          "test/Wjets_2500toInf",
+          "test/Wjets_400to600",
+          "test/Wjets_600to800",
+          "test/Wjets_70to100",
+          "test/Wjets_800to1200"
         ],
         "color":8023,
         "lcolor":1,
@@ -57,27 +57,27 @@
         "tag":"",
         "label":"",
         "trainFiles":[
-          "ZJetsToNuNu_HT100to200",
-          "ZJetsToNuNu_HT1200to2500",
-          "ZJetsToNuNu_HT200to400",
-          "ZJetsToNuNu_HT2500toInf",
-          "ZJetsToNuNu_HT400to600",
-          "ZJetsToNuNu_HT600to800",
-          "ZJetsToNuNu_HT800to1200"
+          "train/ZJetsToNuNu_HT100to200",
+          "train/ZJetsToNuNu_HT1200to2500",
+          "train/ZJetsToNuNu_HT200to400",
+          "train/ZJetsToNuNu_HT2500toInf",
+          "train/ZJetsToNuNu_HT400to600",
+          "train/ZJetsToNuNu_HT600to800",
+          "train/ZJetsToNuNu_HT800to1200"
         ],
         "testFiles":[
-          "ZJetsToNuNu_HT100to200",
-          "ZJetsToNuNu_HT1200to2500",
-          "ZJetsToNuNu_HT200to400",
-          "ZJetsToNuNu_HT2500toInf",
-          "ZJetsToNuNu_HT400to600",
-          "ZJetsToNuNu_HT600to800",
-          "ZJetsToNuNu_HT800to1200"
+          "test/ZJetsToNuNu_HT100to200",
+          "test/ZJetsToNuNu_HT1200to2500",
+          "test/ZJetsToNuNu_HT200to400",
+          "test/ZJetsToNuNu_HT2500toInf",
+          "test/ZJetsToNuNu_HT400to600",
+          "test/ZJetsToNuNu_HT600to800",
+          "test/ZJetsToNuNu_HT800to1200"
         ],
-        "color":,
-        "lcolor":,
-        "lwidth":,
-        "lstyle":
+        "color":802,
+        "lcolor":1,
+        "lwidth":4,
+        "lstyle":1
       }
     ]
   }

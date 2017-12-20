@@ -367,6 +367,146 @@ class NetworkOptimizer(object):
     element = getattr(optimizers, self.optimizer)
     return element(**self.parameters)
 
+class SampleComponents(objects):
+  """
+  A class to help handle reading the sample components
+  """
+  def __init__(self, cfgJson, sampleType, basePath, verbose = False, batch = False):
+    self._rawSource = cfgJson
+    self._verbose = verbose
+    self._batch = batch
+    self._sampleType = sampleType
+    self._basePath = basePath
+
+    if "name" not in self._rawSource:
+      raise KeyError("A component with no name is defined")
+    self.name = self._rawSource["name"]
+
+    self.tag = self.name
+    if "tag" in self._rawSource:
+      self.tag = self._rawSource["tag"]
+
+    self.label = self.name
+    if "label" in self._rawSource:
+      self.label = self._rawSource["label"]
+
+    if "color" not in self._rawSource:
+      raise KeyError("A component with no color is defined")
+    self.color = self._rawSource["color"]
+
+    self.lcolor = 1
+    if "lcolor" in self._rawSource:
+      self.lcolor = self._rawSource["lcolor"]
+
+    self.lwidth = 1
+    if "lwidth" in self._rawSource:
+      self.lwidth = self._rawSource["lwidth"]
+
+    self.lstyle = 1
+    if "lstyle" in self._rawSource:
+      self.lstyle = self._rawSource["lstyle"]
+
+  @property
+  def name(self):
+    """The 'name' property"""
+    if self._verbose:
+      print "Getter of 'name' called"
+    return self._name
+  @name.setter
+  def name(self, value):
+    """Setter of the 'name' property """
+    if not isinstance(value, basestring):
+      raise TypeError("name must be a string")
+    self._name = value
+
+  @property
+  def tag(self):
+    """The 'tag' property"""
+    if self._verbose:
+      print "Getter of 'tag' called"
+    return self._tag
+  @tag.setter
+  def tag(self, value):
+    """Setter of the 'tag' property """
+    if not isinstance(value, basestring):
+      raise TypeError("tag must be a string")
+    self._tag = value
+
+  @property
+  def label(self):
+    """The 'label' property"""
+    if self._verbose:
+      print "Getter of 'label' called"
+    return self._label
+  @label.setter
+  def label(self, value):
+    """Setter of the 'label' property """
+    if not isinstance(value, basestring):
+      raise TypeError("label must be a string")
+    self._label = value
+
+  @property
+  def color(self):
+    """The 'color' property"""
+    if self._verbose:
+      print "Getter of 'color' called"
+    return self._color
+  @color.setter
+  def color(self, value):
+    """Setter of the 'color' property"""
+    if isinstance(value, (int, long)) or (isinstance(value, float) and value.is_integer()):
+      self._color = int(value)
+    else:
+      raise TypeError("color must be an integer")
+
+  @property
+  def lcolor(self):
+    """The 'lcolor' property"""
+    if self._verbose:
+      print "Getter of 'lcolor' called"
+    return self._lcolor
+  @lcolor.setter
+  def lcolor(self, value):
+    """Setter of the 'lcolor' property"""
+    if isinstance(value, (int, long)) or (isinstance(value, float) and value.is_integer()):
+      self._lcolor = int(value)
+    else:
+      raise TypeError("lcolor must be an integer")
+
+  @property
+  def lwidth(self):
+    """The 'lwidth' property"""
+    if self._verbose:
+      print "Getter of 'lwidth' called"
+    return self._lwidth
+  @lwidth.setter
+  def lwidth(self, value):
+    """Setter of the 'lwidth' property"""
+    if isinstance(value, (int, long)) or (isinstance(value, float) and value.is_integer()):
+      if value <= 0:
+        raise ValueError("The lwidth must be greater than 0")
+      else:
+        self._lwidth = int(value)
+    else:
+      raise TypeError("lwidth must be an integer")
+
+  @property
+  def lstyle(self):
+    """The 'lstyle' property"""
+    if self._verbose:
+      print "Getter of 'lstyle' called"
+    return self.lstyler
+  @lstyle.setter
+  def lstyle(self, value):
+    """Setter of the 'lstyle' property"""
+    if isinstance(value, (int, long)) or (isinstance(value, float) and value.is_integer()):
+      if value <= 0 or value > 10:
+        raise ValueError("The lstyle must be greater than 0 and smaller or equal to 10")
+      else:
+        self._lstyle = int(value)
+    else:
+      raise TypeError("lstyle must be an integer")
+
 class NetworkSample(object):
   """
   A class to help handle reading the sample files
@@ -393,6 +533,25 @@ class NetworkSample(object):
 
     import json
     self._rawCfg = json.load(open(self.cfgFile, "rb"))
+
+    if "basePath" not in self._rawCfg["sample"]:
+      raise KeyError("sample '" + self.name + "' does not have a basePath")
+    self.basePath = self._rawCfg["sample"]["basePath"]
+
+    self.type = "new"
+    if "type" in self._rawCfg["sample"]:
+      self.type = self._rawCfg["sample"]["type"]
+
+    self.suffix = ""
+    if "suffix" in self._rawCfg["sample"]:
+      self.suffix = self._rawCfg["sample"]["suffix"]
+
+    self.components = {}
+    if "components" not in self._rawCfg["sample"]:
+      raise KeyError("sample '" + self.name + "' does not have any components")
+    for component in self._rawCfg["sample"]["components"]:
+      tmp = SampleComponents(component, self.type, self.basePath, verbose = self._verbose, batch = self._batch)
+      self.components[tmp.name] = tmp
 
   @property
   def name(self):
@@ -444,6 +603,9 @@ class NetworkSample(object):
     """Setter of the 'type' property """
     if not isinstance(value, basestring):
       raise TypeError("type must be a string")
+    validTypes = ["new", "old"]
+    if value not in validTypes:
+      raise ValueError("Unknown type '" + value + "'")
     self._type = value
 
   @property
@@ -457,7 +619,39 @@ class NetworkSample(object):
     """Setter of the 'basePath' property """
     if not isinstance(value, basestring):
       raise TypeError("basePath must be a string")
+    import os
+    if not os.path.isdir(value):
+      import errno
+      #raise OSError("'" + value + "' is not a valid path")
+      raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), value + " (from file '" + self.cfgFile + "')")
     self._basePath = value
+
+  @property
+  def suffix(self):
+    """The 'suffix' property"""
+    if self._verbose:
+      print "Getter of 'suffix' called"
+    return self._suffix
+  @suffix.setter
+  def suffix(self, value):
+    """Setter of the 'suffix' property """
+    if not isinstance(value, basestring):
+      raise TypeError("suffix must be a string")
+    self._suffix = value
+
+  @property
+  def components(self):
+    """The 'components' property"""
+    if self._verbose:
+      print "Getter of 'components' called"
+    return self._components
+  @components.setter
+  def components(self, value):
+    """Setter of the 'components' property"""
+    if isinstance(value, dict):
+      self._components = value
+    else:
+      raise TypeError("Components must be a dictionary")
 
 class NetworkBuilder(object):
   """
