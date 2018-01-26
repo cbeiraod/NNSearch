@@ -194,6 +194,8 @@ class NetworkTopology(object):
       raise TypeError("dropout must be a double")
 
   def buildModel(self, nIn, nOut, compileArgs):
+    from keras.models import Sequential
+    from keras.layers import Dense, Dropout, AlphaDropout
     if self.type == "simple":
       model = Sequential()
       model.add(Dense(self.neurons, input_dim=nIn, kernel_initializer='he_normal', activation=self.activation))
@@ -302,7 +304,7 @@ class NetworkOptimizer(object):
     element = getattr(optimizers, self.optimizer)
     return element(**self.parameters)
 
-class SampleComponents(objects):
+class SampleComponents(object):
   """
   A class to help handle reading the sample components
   """
@@ -348,14 +350,14 @@ class SampleComponents(objects):
       if "files" not in self._rawSource:
         raise KeyError("A component with no files is defined")
       for file in self._rawSource["files"]:
-        filename = self.basePath + "/" + file
+        filename = self._basePath + "/" + file
         if suffix != "":
           filename = filename + "_" + suffix
         filename = filename + ".root"
         if not os.path.isfile(filename):
           import errno
           raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), file + " (component: " + self.name + ")")
-        self.files.append(file)
+        self.files.append(filename)
     elif self._sampleType == "legacy":
       self.testFiles = []
       self.trainFiles = []
@@ -364,23 +366,23 @@ class SampleComponents(objects):
       if "trainFiles" not in self._rawSource:
         raise KeyError("A component with no trainFiles is defined")
       for file in self._rawSource["testFiles"]:
-        filename = self.basePath + "/" + file
+        filename = self._basePath + "/" + file
         if suffix != "":
           filename = filename + "_" + suffix
         filename = filename + ".root"
         if not os.path.isfile(filename):
           import errno
           raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), file + " (component: " + self.name + ")")
-        self.testFiles.append(file)
+        self.testFiles.append(filename)
       for file in self._rawSource["trainFiles"]:
-        filename = self.basePath + "/" + file
+        filename = self._basePath + "/" + file
         if suffix != "":
           filename = filename + "_" + suffix
         filename = filename + ".root"
         if not os.path.isfile(filename):
           import errno
           raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), file + " (component: " + self.name + ")")
-        self.trainFiles.append(file)
+        self.trainFiles.append(filename)
 
   @property
   def name(self):
@@ -566,7 +568,7 @@ class SampleComponents(objects):
         if trainData is None:
           trainData = pandas.DataFrame(data)
         else:
-          trainData = testData.append(pandas.DataFrame(data), ignore_index=True)
+          trainData = trainData.append(pandas.DataFrame(data), ignore_index=True)
 
       for file in self.testFiles:
         data = root_numpy.root2array(
@@ -742,8 +744,9 @@ class NetworkSample(object):
     trainData = None
     testData = None
 
-    for component in self.components:
-      componentTrain, componentTest = component.getData(self._preselection, self.branches.keys(), self._fraction)
+    for componentName in self.components:
+      component = self.components[componentName]
+      componentTrain, componentTest = component.getData(self._preselection, self._branches.keys(), self._fraction)
       if trainData is None:
         trainData = componentTrain
       else:
@@ -753,8 +756,8 @@ class NetworkSample(object):
       else:
         testData = testData.append(componentTest, ignore_index=True)
 
-    trainData["sampleWeight"] = sample.weight
-    testData["sampleWeight"] = sample.weight
+    trainData["sampleWeight"] = trainData.weight
+    testData["sampleWeight"] = testData.weight
 
     for weight in self.excludeWeight:
       trainData.sampleWeight = trainData.sampleWeight/trainData[weight]
@@ -1043,7 +1046,8 @@ class NetworkBuilder(object):
 
   def getFeatures(self):
     features = []
-    for branch, branchInfo in self.branches:
+    for branch in self.branches:
+      branchInfo = self.branches[branch]
       if branchInfo.isFeature:
         features = features + [branch]
     return features
@@ -1078,7 +1082,10 @@ class NetworkBuilder(object):
     if len(self.samples) > 2:
       compileArgs["loss"] = "categorical_crossentropy"
 
-    self.model = self.buildModel(len(self.getFeatures()), len(self.samples), compileArgs)
+    outputNeurons = len(self.samples)
+    if outputNeurons == 2:
+      outputNeurons = 1
+    self.model = self.topology.buildModel(len(self.getFeatures()), outputNeurons, compileArgs)
 
     trainParams = {
       "epochs": self.epochs,
@@ -1086,6 +1093,7 @@ class NetworkBuilder(object):
       "verbose": 1
     }
 
+    import time
     start = time.time()
     self.history = self.model.fit(XDev, YDev, validation_data=(XVal,YVal,weightVal), sample_weight=weightDev, **trainParams)
     print("Training took ", time.time()-start, " seconds")
