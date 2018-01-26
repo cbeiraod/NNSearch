@@ -343,7 +343,7 @@ class SampleComponents(objects):
         raise KeyError("A component with no files is defined")
       for file in self._rawSource["files"]:
         filename = self.basePath + "/" + file
-        if suffix not "":
+        if suffix != "":
           filename = filename + "_" + suffix
         filename = filename + ".root"
         if not os.path.isfile(filename):
@@ -359,7 +359,7 @@ class SampleComponents(objects):
         raise KeyError("A component with no trainFiles is defined")
       for file in self._rawSource["testFiles"]:
         filename = self.basePath + "/" + file
-        if suffix not "":
+        if suffix != "":
           filename = filename + "_" + suffix
         filename = filename + ".root"
         if not os.path.isfile(filename):
@@ -368,7 +368,7 @@ class SampleComponents(objects):
         self.testFiles.append(file)
       for file in self._rawSource["trainFiles"]:
         filename = self.basePath + "/" + file
-        if suffix not "":
+        if suffix != "":
           filename = filename + "_" + suffix
         filename = filename + ".root"
         if not os.path.isfile(filename):
