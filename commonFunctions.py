@@ -655,6 +655,7 @@ class NetworkBuilder(object):
     self._verbose = verbose
     self._batch = batch
 
+    self.name         = self._rawSource["network"]["name"]
     self.epochs       = self._rawSource["network"]["epochs"]
     self.batchSize    = self._rawSource["network"]["batchSize"]
     self.kFolds       = 1
@@ -853,6 +854,41 @@ class NetworkBuilder(object):
     else:
       raise TypeError("multiple must be an integer")
 
+  @property
+  def model(self):
+    """The 'model' property"""
+    if self._verbose:
+      print "Getter of 'model' called"
+    return self._model
+  @model.setter
+  def model(self, value):
+    """Setter of the 'model' property"""
+    self._model = value
+
+  @property
+  def history(self):
+    """The 'history' property"""
+    if self._verbose:
+      print "Getter of 'history' called"
+    return self._history
+  @history.setter
+  def history(self, value):
+    """Setter of the 'history' property"""
+    self._history = value
+
+  @property
+  def name(self):
+    """The 'name' property"""
+    if self._verbose:
+      print "Getter of 'name' called"
+    return self._name
+  @name.setter
+  def name(self, value):
+    """Setter of the 'name' property """
+    if not isinstance(value, basestring):
+      raise TypeError("name must be a string")
+    self._name = value
+
   def buildModel(self):
     return None
 
@@ -863,11 +899,17 @@ class NetworkBuilder(object):
     return None
 
   def train(self):
-    model = self.buildModel()
+    self.model = self.buildModel()
     data = self.getData()
     features = self.getFeatures()
 
-    #return model.fit(...)
+    #self.history = self.model.fit(...)
+
+    #return
+
+  def save_h5(self, directory):
+    self.model.save(directory + "/" +  + ".h5")
+    return None
 
 def make_sure_path_exists(path):
   import os
