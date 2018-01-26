@@ -93,10 +93,14 @@
         "label":"",
         "isFeature":true
       },
-
+      {
+        "name":"Event",
+        "tag":"event_number",
+        "label":"event #"
+      },
       {
         "name":"XS",
-        "tag":"xsec [pb]",
+        "tag":"xsec",
         "label":"\\sigma [pb]"
       },
       {
@@ -110,15 +114,15 @@
     "fraction":1.0,
     "samples":[
       {
+        "name":"background",
+        "cfgFile":"background.json"
+      },
+      {
         "name":"signal",
         "cfgFile":"signal.json",
         "excludeWeight":[
           "XS"
         ]
-      },
-      {
-        "name":"background",
-        "cfgFile":"background.json"
       }
     ]
   }
