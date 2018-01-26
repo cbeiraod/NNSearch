@@ -198,11 +198,17 @@ class NetworkTopology(object):
       model = Sequential()
       model.add(Dense(self.neurons, input_dim=nIn, kernel_initializer='he_normal', activation=self.activation))
       if self.dropout > 0:
-        model.add(Dropout(self.dropout))
+        if self.activation == "selu":
+          model.add(AlphaDropout(self.dropout))
+        else:
+          model.add(Dropout(self.dropout))
       for i in range(self.nLayers - 1):
         model.add(Dense(self.neurons, kernel_initializer='he_normal', activation=self.activation))
         if self.dropout > 0:
-          model.add(Dropout(self.dropout))
+          if self.activation == "selu":
+            model.add(AlphaDropout(self.dropout))
+          else:
+            model.add(Dropout(self.dropout))
       model.add(Dense(nOut, activation="sigmoid", kernel_initializer='glorot_normal'))
       model.compile(**compileArgs)
       return model
