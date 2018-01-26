@@ -505,6 +505,9 @@ class SampleComponents(objects):
     trainData = None
     testData = None
 
+    if "weight" not in branches:
+      branches.append("weight")
+
     if self._sampleType == "unified":
       if "Event" not in branches:
         branches.append("Event")
@@ -561,6 +564,10 @@ class SampleComponents(objects):
           testData = testData.append(pandas.DataFrame(data), ignore_index=True)
     else:
       raise ValueError("Unknown type '" + self._sampleType + "'")
+
+    if fraction < 1.0:
+      trainData.weight = trainData.weight/fraction
+      testData.weight  = testData.weight/fraction
 
     return trainData, testData
 
@@ -724,6 +731,13 @@ class NetworkSample(object):
         testData = componentTest
       else:
         testData = testData.append(componentTest, ignore_index=True)
+
+    trainData["sampleWeight"] = sample.weight
+    testData["sampleWeight"] = sample.weight
+
+    for weight in self.excludeWeight:
+      trainData.sampleWeight = trainData.sampleWeight/trainData[weight]
+      testData.sampleWeight  = testData.sampleWeight/testData[weight]
 
     return trainData, testData
 
@@ -1001,6 +1015,9 @@ class NetworkBuilder(object):
         testData = test
       else:
         testData = testData.append(test, ignore_index=True)
+
+    trainData.sampleWeight = trainData.sampleWeight/trainData.sampleWeight.sum()
+    testData.sampleWeight  = testData.sampleWeight/testData.sampleWeight.sum()
 
     return trainData, testData
 
