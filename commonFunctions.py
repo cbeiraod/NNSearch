@@ -660,6 +660,7 @@ class NetworkBuilder(object):
     self.kFolds       = 1
     self.fraction     = 1.0
     self.seed         = -1
+    self.multiple     = 1
     self.preselection = ""
     if "k-folds" in self._rawSource["network"]:
       self.kFolds   = self._rawSource["network"]["k-folds"]
@@ -669,6 +670,8 @@ class NetworkBuilder(object):
       self.seed     = self._rawSource["network"]["seed"]
     if "preselection" in self._rawSource["network"]:
       self.preselection = self._rawSource["network"]["preselection"]
+    if "multiple" in self._rawSource["network"]:
+      self.multiple     = self._rawSource["network"]["multiple"]
 
     self.branches = {}
     for branch in self._rawSource["network"]["branches"]:
@@ -832,6 +835,23 @@ class NetworkBuilder(object):
     if not isinstance(value, list):
       raise TypeError("samples must be a list")
     self._samples = value
+
+  @property
+  def multiple(self):
+    """The 'multiple' property"""
+    if self._verbose:
+      print "Getter of 'multiple' called"
+    return self._multiple
+  @multiple.setter
+  def multiple(self, value):
+    """Setter of the 'multiple' property"""
+    if isinstance(value, (int, long)) or (isinstance(value, float) and value.is_integer()):
+      if value <= 0:
+        raise ValueError("The multiplicity of networks to train must be greater than 0")
+      else:
+        self._multiple = int(value)
+    else:
+      raise TypeError("multiple must be an integer")
 
   def buildModel(self):
     return None
