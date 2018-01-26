@@ -1001,8 +1001,10 @@ class NetworkBuilder(object):
       testDataArray.append(test)
 
     for i in range(len(trainDataArray)):
-      trainDataArray[i]["category"] = i
-      testDataArray[i]["category"] = i
+      trainDataArray[i]["category"]  = i
+      testDataArray[i]["category"]   = i
+      trainDataArray[i].sampleWeight = trainDataArray[i].sampleWeight/trainDataArray[i].sampleWeight.sum()
+      testDataArray[i].sampleWeight  = testDataArray[i].sampleWeight/testDataArray[i].sampleWeight.sum()
 
     for train in trainDataArray:
       if trainData is None:
@@ -1015,9 +1017,6 @@ class NetworkBuilder(object):
         testData = test
       else:
         testData = testData.append(test, ignore_index=True)
-
-    trainData.sampleWeight = trainData.sampleWeight/trainData.sampleWeight.sum()
-    testData.sampleWeight  = testData.sampleWeight/testData.sampleWeight.sum()
 
     return trainData, testData
 
