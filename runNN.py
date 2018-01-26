@@ -46,3 +46,7 @@ if __name__ == "__main__":
   #myNetwork.buildModel()
   myNetwork.train()
 
+  myNetwork.save_h5()
+  myNetwork.save_history()
+
+
