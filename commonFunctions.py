@@ -1,3 +1,5 @@
+import root_numpy
+import pandas
 
 class BranchInformation(object):
   """
@@ -499,6 +501,69 @@ class SampleComponents(objects):
       raise TypeError("trainFiles must be a list")
     self._trainFiles = value
 
+  def getData(self, selection, branches, fraction):
+    trainData = None
+    testData = None
+
+    if self._sampleType == "unified":
+      if "Event" not in branches:
+        branches.append("Event")
+      Data = None
+      for file in self.files:
+        data = root_numpy.root2array(
+                                     file,
+                                     treename="bdttree",
+                                     selection=selection,
+                                     branches=branches
+                                     )
+
+        if fraction < 1.0:
+          data = data[:int(len(data)*fraction)]
+
+        if Data is None:
+          Data = pandas.DataFrame(data)
+        else:
+          Data = testData.append(pandas.DataFrame(data), ignore_index=True)
+      Data["NNSearch_Class"] = Data["Event"] % 2
+      trainData = Data[Data["NNSearch_Class"] == 1]
+      testData = Data[Data["NNSearch_Class"] == 0]
+    elif self._sampleType == "legacy":
+      for file in self.trainFiles:
+        data = root_numpy.root2array(
+                                     file,
+                                     treename="bdttree",
+                                     selection=selection,
+                                     branches=branches
+                                     )
+
+        if fraction < 1.0:
+          data = data[:int(len(data)*fraction)]
+
+        if trainData is None:
+          trainData = pandas.DataFrame(data)
+        else:
+          trainData = testData.append(pandas.DataFrame(data), ignore_index=True)
+
+      for file in self.testFiles:
+        data = root_numpy.root2array(
+                                     file,
+                                     treename="bdttree",
+                                     selection=selection,
+                                     branches=branches
+                                     )
+
+        if fraction < 1.0:
+          data = data[:int(len(data)*fraction)]
+
+        if testData is None:
+          testData = pandas.DataFrame(data)
+        else:
+          testData = testData.append(pandas.DataFrame(data), ignore_index=True)
+    else:
+      raise ValueError("Unknown type '" + self._sampleType + "'")
+
+    return trainData, testData
+
 class NetworkSample(object):
   """
   A class to help handle reading the sample files
@@ -644,6 +709,23 @@ class NetworkSample(object):
       self._components = value
     else:
       raise TypeError("Components must be a dictionary")
+
+  def getData(self):
+    trainData = None
+    testData = None
+
+    for component in self.components:
+      componentTrain, componentTest = component.getData(self._preselection, self.branches.keys(), self._fraction)
+      if trainData is None:
+        trainData = componentTrain
+      else:
+        trainData = trainData.append(componentTrain, ignore_index=True)
+      if testData is None:
+        testData = componentTest
+      else:
+        testData = testData.append(componentTest, ignore_index=True)
+
+    return trainData, testData
 
 class NetworkBuilder(object):
   """
@@ -893,23 +975,64 @@ class NetworkBuilder(object):
     return None
 
   def getData(self):
-    return None
+    trainData = None
+    testData = None
+
+    trainDataArray = []
+    testDataArray = []
+
+    for sample in self.samples:
+      train, test = sample.getData()
+      trainDataArray.append(train)
+      testDataArray.append(test)
+
+    for i in range(len(trainDataArray)):
+      trainDataArray[i]["category"] = i
+      testDataArray[i]["category"] = i
+
+    for train in trainDataArray:
+      if trainData is None:
+        trainData = train
+      else:
+        trainData = trainData.append(train, ignore_index=True)
+
+    for test in testDataArray:
+      if testData is None:
+        testData = test
+      else:
+        testData = testData.append(test, ignore_index=True)
+
+    return trainData, testData
 
   def getFeatures(self):
-    return None
+    features = []
+    for branch, branchInfo in self.branches:
+      if branchInfo.isFeature:
+        features = features + [branch]
+    return features
 
   def train(self):
-    self.model = self.buildModel()
-    data = self.getData()
     features = self.getFeatures()
+
+    trainData, testData = self.getData()
+
+    self.model = self.buildModel()
 
     #self.history = self.model.fit(...)
 
     #return
 
-  def save_h5(self, directory):
-    self.model.save(directory + "/" +  + ".h5")
-    return None
+  def save_h5(self, directory, epoch = None):
+    if epoch is None:
+      self.model.save(directory + "/" + self.name + ".h5")
+    else:
+      self.model.save(directory + "/" + self.name + "_E" + str(epoch) + ".h5")
+    return
+
+  def save_history(self, directory):
+    import pickle
+    pickle.dump(self.history, open(directory + "/" + self.name + ".hist", "wb"))
+    return
 
 def make_sure_path_exists(path):
   import os
