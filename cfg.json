@@ -93,10 +93,14 @@
         "label":"",
         "isFeature":true
       },
-
+      {
+        "name":"Event",
+        "tag":"event_number",
+        "label":"event #"
+      },
       {
         "name":"XS",
-        "tag":"xsec [pb]",
+        "tag":"xsec",
         "label":"\\sigma [pb]"
       },
       {
