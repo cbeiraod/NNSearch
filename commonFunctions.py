@@ -137,7 +137,7 @@ class NetworkTopology(object):
     """Setter of 'activation' property"""
     if not isinstance(value, basestring):
       raise TypeError("activation must be a string")
-    allActivations = ['relu']
+    allActivations = ['relu', 'selu']
     if value not in allActivations:
       raise ValueError("activation is not a recognized activation")
     self._activation = value
@@ -192,6 +192,21 @@ class NetworkTopology(object):
         self._dropout = float(value)
     else:
       raise TypeError("dropout must be a double")
+
+  def buildModel(self, nIn, nOut, compileArgs):
+    if self.type == "simple":
+      model = Sequential()
+      model.add(Dense(self.neurons, input_dim=nIn, kernel_initializer='he_normal', activation=self.activation))
+      if self.dropout > 0:
+        model.add(Dropout(self.dropout))
+      for i in range(self.nLayers - 1):
+        model.add(Dense(self.neurons, kernel_initializer='he_normal', activation=self.activation))
+        if self.dropout > 0:
+          model.add(Dropout(self.dropout))
+      model.add(Dense(nOut, activation="sigmoid", kernel_initializer='glorot_normal'))
+      model.compile(**compileArgs)
+      return model
+    return None
 
 class NetworkOptimizer(object):
   """
@@ -986,7 +1001,7 @@ class NetworkBuilder(object):
     self._name = value
 
   def buildModel(self):
-    return None
+    return self.topology.buildModel()
 
   def getData(self):
     trainData = None
@@ -1028,15 +1043,48 @@ class NetworkBuilder(object):
     return features
 
   def train(self):
+    import numpy as np
+    import keras
     features = self.getFeatures()
 
     trainData, testData = self.getData()
 
-    self.model = self.buildModel()
+    # TODO: implement k-folding
+    XDev = trainData.ix[:,self.getFeatures()]
+    XVal = testData.ix[:,self.getFeatures()]
+    YDev = None
+    YVal = None
+    if len(self.samples) > 2:
+      YDev = keras.utils.to_categorical(np.ravel(trainData.category), num_classes=len(self.samples))
+      YVal = keras.utils.to_categorical(np.ravel(testData.category), num_classes=len(self.samples))
+    else:
+      YDev = np.ravel(trainData.category)
+      YVal = np.ravel(testData.category)
+    weightDev = np.ravel(trainData.sampleWeight)
+    weightVal = np.ravel(testData.sampleWeight)
 
-    #self.history = self.model.fit(...)
+    # TODO: what about regression? Should use loss MSE and the output of the last layer should not be sigmoid
+    compileArgs = {
+      "loss": "binary_crossentropy",
+      "optimizer": self.optimizer.build(),
+      "metrics": ["accuracy"] # TODO: Add ROC AUC
+    }
+    if len(self.samples) > 2:
+      compileArgs["loss"] = "categorical_crossentropy"
 
-    #return
+    self.model = self.buildModel(len(self.getFeatures()), len(self.samples), compileArgs)
+
+    trainParams = {
+      "epochs": self.epochs,
+      "batch_size": self.batchSize,
+      "verbose": 1
+    }
+
+    start = time.time()
+    self.history = self.model.fit(XDev, YDev, validation_data=(XVal,YVal,weightVal), sample_weight=weightDev, **trainParams)
+    print("Training took ", time.time()-start, " seconds")
+
+    return
 
   def save_h5(self, directory, epoch = None):
     if epoch is None:
