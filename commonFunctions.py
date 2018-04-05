@@ -778,13 +778,19 @@ class NetworkBuilder(object):
     self.name         = self._rawSource["network"]["name"]
     self.epochs       = self._rawSource["network"]["epochs"]
     self.batchSize    = self._rawSource["network"]["batchSize"]
-    self.numberFolds  = 1
+    self.splitting    = "n-fold"
+    self.numberFolds  = 3
+    self.doCombinatorics = False
     self.fraction     = 1.0
     self.seed         = -1
     self.multiple     = 1
     self.preselection = ""
+    if "splitting" in self._rawSource["network"]:
+      self.splitting   = self._rawSource["network"]["splitting"]
     if "number_folds" in self._rawSource["network"]:
       self.numberFolds   = self._rawSource["network"]["number_folds"]
+    if "doCombinatorics" in self._rawSource["network"]:
+      self.doCombinatorics   = self._rawSource["network"]["doCombinatorics"]
     if "fraction" in self._rawSource["network"]:
       self.fraction = self._rawSource["network"]["fraction"]
     if "seed" in self._rawSource["network"]:
@@ -842,6 +848,22 @@ class NetworkBuilder(object):
       raise TypeError("Batch size must be an integer")
 
   @property
+  def splitting(self):
+    """The 'splitting' property"""
+    if self._verbose:
+      print "Getter of 'splitting' called"
+    return self._splitting
+  @splitting.setter
+  def splitting(self, value):
+    """Setter of the 'splitting' property """
+    if not isinstance(value, basestring):
+      raise TypeError("splitting must be a string")
+    validSplits = ["k-fold", "n-fold"]
+    if value not in validSplits:
+      raise ValueError("Unknown type '" + value + "'")
+    self._splitting = value
+
+  @property
   def numberFolds(self):
     """The 'numberFolds' property"""
     if self._verbose:
@@ -857,6 +879,19 @@ class NetworkBuilder(object):
         self._numberFolds = int(value)
     else:
       raise TypeError("number_folds must be an integer")
+
+  @property
+  def doCombinatorics(self):
+    """The 'doCombinatorics' property"""
+    if self._verbose:
+      print "Getter of 'doCombinatorics' called"
+    return self._doCombinatorics
+  @doCombinatorics.setter
+  def doCombinatorics(self, value):
+    """Setter of the 'doCombinatorics' property """
+    if not isinstance(value, bool):
+      raise TypeError("doCombinatorics must be a boolean")
+    self._doCombinatorics = value
 
   @property
   def fraction(self):
