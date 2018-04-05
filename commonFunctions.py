@@ -824,6 +824,9 @@ class NetworkBuilder(object):
     if not consistentType:
       raise ValueError("The samples must have consistent types")
 
+    if len(self.getFeatures()) < 1:
+      raise ValueError("You must define at least 1 feature")
+
     if len(vec) < 2:
       raise ValueError("You must define at least 2 sample types")
 
