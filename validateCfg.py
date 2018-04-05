@@ -29,4 +29,5 @@ if __name__ == "__main__":
   validator = funk.NetworkBuilder(args.configFile, batch=True, verbose=args.verbose)
 
   print "No issues found"
+  print "Done!"
 

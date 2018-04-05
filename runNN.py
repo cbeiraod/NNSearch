@@ -48,4 +48,6 @@ if __name__ == "__main__":
   myNetwork.save_h5(args.outDirectory)
   myNetwork.save_history(args.outDirectory)
 
+  print "Done!"
+
 
