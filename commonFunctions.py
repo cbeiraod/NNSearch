@@ -813,10 +813,24 @@ class NetworkBuilder(object):
       tmp = NetworkSample(sample, self.preselection, self.fraction, self.branches, verbose=self._verbose, batch=self._batch)
       self.samples.append(tmp)
 
-    if self.samples.type is "legacy" and self.splitting is "n-fold":
+    consistentType = True
+    firstType = None
+    for sample in self.samples:
+      if firstType is None:
+        firstType = sample.type
+      if firstType is not sample.type:
+        consistentType = False
+        break
+    if not consistentType:
+      raise ValueError("The samples must have consistent types")
+
+    if len(vec) < 2:
+      raise ValueError("You must define at least 2 sample types")
+
+    if self.samples[0].type is "legacy" and self.splitting is "n-fold":
       raise ValueError("Can not do n-folding with legacy samples")
 
-    if self.samples.type is "legacy" and self.numberFolds < 2:
+    if self.samples[0].type is "legacy" and self.numberFolds < 2:
       self.numberFolds = 2
 
   @property
