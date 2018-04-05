@@ -813,6 +813,12 @@ class NetworkBuilder(object):
       tmp = NetworkSample(sample, self.preselection, self.fraction, self.branches, verbose=self._verbose, batch=self._batch)
       self.samples.append(tmp)
 
+    if self.samples.type is "legacy" and self.splitting is "n-fold":
+      raise ValueError("Can not do n-folding with legacy samples")
+
+    if self.samples.type is "legacy" and self.numberFolds < 2:
+      self.numberFolds = 2
+
   @property
   def epochs(self):
     """The 'epochs' property"""
