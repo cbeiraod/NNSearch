@@ -778,13 +778,13 @@ class NetworkBuilder(object):
     self.name         = self._rawSource["network"]["name"]
     self.epochs       = self._rawSource["network"]["epochs"]
     self.batchSize    = self._rawSource["network"]["batchSize"]
-    self.kFolds       = 1
+    self.numberFolds  = 1
     self.fraction     = 1.0
     self.seed         = -1
     self.multiple     = 1
     self.preselection = ""
-    if "k-folds" in self._rawSource["network"]:
-      self.kFolds   = self._rawSource["network"]["k-folds"]
+    if "number_folds" in self._rawSource["network"]:
+      self.numberFolds   = self._rawSource["network"]["number_folds"]
     if "fraction" in self._rawSource["network"]:
       self.fraction = self._rawSource["network"]["fraction"]
     if "seed" in self._rawSource["network"]:
@@ -842,21 +842,21 @@ class NetworkBuilder(object):
       raise TypeError("Batch size must be an integer")
 
   @property
-  def kFolds(self):
-    """The 'kFolds' property"""
+  def numberFolds(self):
+    """The 'numberFolds' property"""
     if self._verbose:
-      print "Getter of 'kFolds' called"
-    return self._kFolds
-  @kFolds.setter
-  def kFolds(self, value):
-    """Setter of the 'kFolds' property"""
+      print "Getter of 'numberFolds' called"
+    return self._numberFolds
+  @numberFolds.setter
+  def numberFolds(self, value):
+    """Setter of the 'numberFolds' property"""
     if isinstance(value, (int, long)) or (isinstance(value, float) and value.is_integer()):
       if value <= 0:
-        raise ValueError("The number of cross validation folds must be greater than 0")
+        raise ValueError("The number of splitting folds must be greater than 0")
       else:
-        self._kFolds = int(value)
+        self._numberFolds = int(value)
     else:
-      raise TypeError("K-folds must be an integer")
+      raise TypeError("number_folds must be an integer")
 
   @property
   def fraction(self):

@@ -11,7 +11,9 @@
     "epochs":300,
     "batchSize":32,
 
-    "k-folds":1,
+    "splitting":"n-fold",
+    "number_folds":3,
+    "doCombinatorics":false,
 
     "optimizer":{
       "optimizer":"adam",
