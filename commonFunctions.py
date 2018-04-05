@@ -1064,9 +1064,6 @@ class NetworkBuilder(object):
       raise TypeError("name must be a string")
     self._name = value
 
-  def buildModel(self):
-    return self.topology.buildModel()
-
   def getData(self):
     trainData = None
     testData = None
