@@ -1082,7 +1082,7 @@ class NetworkBuilder(object):
     if len(self.samples) > 2:
       compileArgs["loss"] = "categorical_crossentropy"
     if len(self.samples) == 2:
-      compileArgs["metrics"] = compileArgs["metrics"] + ["roc_auc"]
+      compileArgs["metrics"] = compileArgs["metrics"] + ["roc_auc"] # TODO: Add FOM
 
     outputNeurons = len(self.samples)
     if outputNeurons == 2:
