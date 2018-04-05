@@ -1077,10 +1077,12 @@ class NetworkBuilder(object):
     compileArgs = {
       "loss": "binary_crossentropy",
       "optimizer": self.optimizer.build(),
-      "metrics": ["accuracy"] # TODO: Add ROC AUC
+      "metrics": ["accuracy"]
     }
     if len(self.samples) > 2:
       compileArgs["loss"] = "categorical_crossentropy"
+    if len(self.samples) == 2:
+      compileArgs["metrics"] = compileArgs["metrics"] + ["roc_auc"]
 
     outputNeurons = len(self.samples)
     if outputNeurons == 2:
