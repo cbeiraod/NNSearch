@@ -775,16 +775,16 @@ class NetworkBuilder(object):
     self._verbose = verbose
     self._batch = batch
 
-    self.name         = self._rawSource["network"]["name"]
-    self.epochs       = self._rawSource["network"]["epochs"]
-    self.batchSize    = self._rawSource["network"]["batchSize"]
-    self.splitting    = "n-fold"
-    self.numberFolds  = 3
+    self.name            = self._rawSource["network"]["name"]
+    self.epochs          = self._rawSource["network"]["epochs"]
+    self.batchSize       = self._rawSource["network"]["batchSize"]
+    self.splitting       = "n-fold"
+    self.numberFolds     = 3
     self.doCombinatorics = False
-    self.fraction     = 1.0
-    self.seed         = -1
-    self.multiple     = 1
-    self.preselection = ""
+    self.fraction        = 1.0
+    self.seed            = -1
+    self.multiple        = 1
+    self.preselection    = ""
     if "splitting" in self._rawSource["network"]:
       self.splitting   = self._rawSource["network"]["splitting"]
     if "number_folds" in self._rawSource["network"]:
