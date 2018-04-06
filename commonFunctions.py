@@ -1,6 +1,7 @@
 import root_numpy
 import pandas
 import numpy as np
+from sklearn.preprocessing import StandardScaler
 
 class BranchInformation(object):
   """
@@ -780,6 +781,7 @@ class NetworkBuilder(object):
     self._rawSource = json.load(open(cfgJson, "rb"))
     self._verbose = verbose
     self._batch = batch
+    self.transformations = {}
 
     self.name            = self._rawSource["network"]["name"]
     self.epochs          = self._rawSource["network"]["epochs"]
@@ -1074,6 +1076,17 @@ class NetworkBuilder(object):
     self._model = value
 
   @property
+  def transformations(self):
+    """The 'transformations' property"""
+    if self._verbose:
+      print "Getter of 'transformations' called"
+    return self._transformations
+  @transformations.setter
+  def transformations(self, value):
+    """Setter of the 'transformations' property"""
+    self._transformations = value
+
+  @property
   def history(self):
     """The 'history' property"""
     if self._verbose:
@@ -1247,6 +1260,11 @@ class NetworkBuilder(object):
           YTrain = YTrain.append(YValues[fold], ignore_index=True)
           weightTrain = weightTrain.append(weights[fold], ignore_index=True)
 
+    self.transformations["scaler"] = StandardScaler().fit(XTrain)
+    XTrain = self.transformations["scaler"].transform(XTrain)
+    XTest = self.transformations["scaler"].transform(XTest)
+    XVal = self.transformations["scaler"].transform(XVal)
+
     self.model = self.topology.buildModel(len(self.getFeatures()), outputNeurons, compileArgs)
 
     import time
@@ -1257,26 +1275,41 @@ class NetworkBuilder(object):
     return
 
   def save_h5(self, directory, saveModel=None, epoch = None, foldString = None):
+    from sklearn.externals import joblib
+
     fileName = self.name
     if foldString is not None:
       fileName = fileName + "_" + str(foldString)
+
+    make_sure_path_exists(directory + "/" + fileName)
 
     model = self.model
     if isinstance(model, list):
       model = self.model[0]
     if saveModel is not None:
-      model = saveModel
+      model = self.model[saveModel]
+
+    transformations = self.transformations
+    if isinstance(transformations, list):
+      transformations = self.transformations[0]
+    if saveModel is not None:
+      transformations = self.transformations[saveModel]
+
+    for key, val in transformations.iteritems():
+      joblib.dump(val, directory + "/" + fileName + "/" + key + ".sav")
 
     if epoch is None:
-      model.save(directory + "/" + fileName + ".h5")
+      model.save(directory + "/" + fileName + "/model.h5")
     else:
-      model.save(directory + "/" + fileName + "_E" + str(epoch) + ".h5")
+      model.save(directory + "/" + fileName + "/E" + str(epoch) + ".h5")
     return
 
   def save_history(self, directory, saveHistory = None, foldString = None):
     fileName = self.name
     if foldString is not None:
       fileName = fileName + "_" + str(foldString)
+
+    make_sure_path_exists(directory + "/" + fileName)
 
     history = self.history
     if isinstance(history, list):
@@ -1285,7 +1318,7 @@ class NetworkBuilder(object):
       history = saveHistory
 
     import pickle
-    pickle.dump(history, open(directory + "/" + fileName + ".hist", "wb"))
+    pickle.dump(history, open(directory + "/" + fileName + "/hist.pkl", "wb"))
     return
 
 def make_sure_path_exists(path):
