@@ -1223,8 +1223,8 @@ class NetworkBuilder(object):
     }
     if len(self.samples) > 2:
       compileArgs["loss"] = "categorical_crossentropy"
-    if len(self.samples) == 2:
-      compileArgs["metrics"] = compileArgs["metrics"] + ["roc_auc"] # TODO: Add FOM
+    #if len(self.samples) == 2: # TODO: Add ROC
+    #  compileArgs["metrics"] = compileArgs["metrics"] + ["roc_auc"] # TODO: Add FOM
 
     outputNeurons = len(self.samples)
     if outputNeurons == 2:
@@ -1246,7 +1246,7 @@ class NetworkBuilder(object):
     YVal = YTest
     weightTest = weights[0]
     weightTrain = weights[1]
-    weightVal = weightsTest
+    weightVal = weightTest
     if self.splitting is "n-fold":
       XTrain = None
       YTrain = None
