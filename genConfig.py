@@ -1,5 +1,8 @@
 import json
 from pprint import pprint
+import math
+from copy import deepcopy
+from commonFunctions import make_sure_path_exists
 
 def scanCombinations(scanParams):
     myParam = scanParams.keys()[0]
@@ -37,17 +40,67 @@ def scanCombinations(scanParams):
                 myList.append(tmp)
     return myList
 
-def consolidateListType(myList):
+def consolidateListType(myList,intTypeList):
+    for i in range (0, len(myList)):
+        for j in range(0,len(intTypeList)):
+            if intTypeList[j] in myList[i]:
+                myList[i][intTypeList[j]] = int(math.floor(myList[i][intTypeList[j]]))
+    return myList
 
-    return
+def createJson(pointParam,cfgJson):
 
+    newJson = deepcopy(cfgJson)
+
+    if "layers" in pointParam:
+        newJson["network"]["topology"]["layers"] = pointParam["layers"]
+    if "neurons" in pointParam:
+        newJson["network"]["topology"]["neurons"] = pointParam["neurons"]
+    if "dropout_rate" in pointParam:
+        newJson["network"]["topology"]["dropout"] = pointParam["dropout_rate"]
+    if "epochs" in pointParam:
+        newJson["network"]["epochs"] = pointParam["epochs"]
+    if "batch_size" in pointParam:
+        newJson["network"]["batchSize"] = pointParam["batch_size"]
+    if "learning_rate" in pointParam:
+        newJson["network"]["optimizer"]["lr"] = pointParam["learning_rate"]
+    if "learning_rate_decay" in pointParam:
+        newJson["network"]["optimizer"]["decay"] = pointParam["learning_rate_decay"]
+    if "L2_regularizer" in pointParam:
+        newJson["network"]["topology"]["l2"] = pointParam["L2_regularizer"]
+
+    return newJson
+
+def saveJson(myList,cfgJson,dir):
+    for i in range(0,len(myList)):
+        pointParam = myList[i]
+        name = getNameFromPoint(pointParam)
+        path = dir+"/"+name+"/"
+        make_sure_path_exists(path)
+        newJson = createJson(pointParam,cfgJson)
+        with open(path+'cfg.json', 'w') as outfile:
+            json.dump(newJson, outfile, sort_keys = True, indent = 4, ensure_ascii = False)
+
+def getNameFromPoint(pointParam):
+    name = ""
+    for k,v in pointParam.iteritems():
+        name = name + str(k) + str(v)+"_"
+    name = name[:-1]
+    name = name.replace("layers","L")
+    name = name.replace("neurons","N")
+    name = name.replace("dropout_rate","Dr")
+    name = name.replace("epochs","E")
+    name = name.replace("batch_size","Bs")
+    name = name.replace("learning_rate","Lr")
+    name = name.replace("learning_rate_decay","De")
+    name = name.replace("L2_regularizer","L2Reg")
+
+    return name
 
 if __name__ == "__main__":
     import os
     import subprocess
     import argparse
     import sys
-    #from commonFunctions import make_sure_path_exists
     import datetime
 
     parser = argparse.ArgumentParser(description='Process the command line options')
@@ -57,8 +110,8 @@ if __name__ == "__main__":
     parser.add_argument('--batch-size', nargs='+', type=int, default=[], help='Batch size: min max entries')
     parser.add_argument('--learning-rate', nargs='+', type=float, default=[], help='Learning rate: min max entries')
     parser.add_argument('--learning-rate-decay', nargs='+', type=float, default=[], help='Learning rate decay: min max entries')
-    parser.add_argument('--dropout-rate', nargs='+', type=int, default=[], help='Dropout rate: min max entries')
-    parser.add_argument('--L2-regularizer', nargs='+', type=int, default=[], help='L2 regularizer: min max entries')
+    parser.add_argument('--dropout-rate', nargs='+', type=float, default=[], help='Dropout rate: min max entries')
+    parser.add_argument('--L2-regularizer', nargs='+', type=float, default=[], help='L2 regularizer: min max entries')
 
     parser.add_argument('-c', '--inputFile', required=True, help='Inpunt configuration file dirctory')
     parser.add_argument('-d', '--directory', required=True, help='Output directory to save configuration file')
@@ -66,6 +119,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     input_file = args.inputFile
     dir = args.directory
+    make_sure_path_exists(dir)
 
     scanParams = {}
 
@@ -77,26 +131,16 @@ if __name__ == "__main__":
         if len(value) is not 0:
             scanParams[arg]=value
 
-    scanCombinations(scanParams)
-    exit()
+    if scanParams == {}:
+        raise KeyError("You must parse at least one grid search parameter")
 
+    intTypeList=["layers","neurons","epochs","batch_size"]
+    floatTypeList=["learning_rate","learning_rate_decay","dropout_rate","L2_regularizer"]
+    allTypesList = intTypeList + floatTypeList
 
-
-    '''
-    n_layers = args.layers
-    n_neurons = args.neurons
-    n_epochs = args.epochs
-    batch_size = args.batchSize #len(XDev)/100
-    learning_rate = args.learningRate
-    my_decay = args.decay
-    dropout_rate = args.dropoutRate
-    regularizer = args.regularizer
-    '''
-    #name = "L"+str(n_layers)+"_N"+str(n_neurons)+"_E"+str(n_epochs)+"_Bs"+str(batch_size)+"_Lr"+str(learning_rate)+"_Dr"+str(dropout_rate)+"_De"+str(args.decay)+"_L2Reg"+str(regularizer)+"_Tr"+train_DM+"_Te"+test_point+"_DT"+suffix
-
-    #make_sure_path_exists(filepath+"/accuracy/"+"dummy.txt")
+    myParamsList=consolidateListType(scanCombinations(scanParams),intTypeList)
 
     json_data=open(input_file).read()
+    cfgJson = json.loads(json_data)
 
-    data = json.loads(json_data)
-    #pprint(data)
+    saveJson(myParamsList,cfgJson,dir)
