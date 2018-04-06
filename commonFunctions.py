@@ -790,6 +790,7 @@ class NetworkBuilder(object):
     self.splitting       = "n-fold"
     self.splittingType   = "random"
     self.numberFolds     = 3
+    self.splittingSeed   = -1
     self.doCombinatorics = False
     self.fraction        = 1.0
     self.seed            = -1
@@ -801,6 +802,8 @@ class NetworkBuilder(object):
       self.splitting   = self._rawSource["network"]["splitting"]
     if "numberFolds" in self._rawSource["network"]:
       self.numberFolds   = self._rawSource["network"]["numberFolds"]
+    if "splittingSeed" in self._rawSource["network"]:
+      self.splittingSeed     = self._rawSource["network"]["splittingSeed"]
     if "doCombinatorics" in self._rawSource["network"]:
       self.doCombinatorics   = self._rawSource["network"]["doCombinatorics"]
     if "fraction" in self._rawSource["network"]:
@@ -935,6 +938,20 @@ class NetworkBuilder(object):
         self._numberFolds = int(value)
     else:
       raise TypeError("number_folds must be an integer")
+
+  @property
+  def splittingSeed(self):
+    """The 'splittingSeed' property"""
+    if self._verbose:
+      print "Getter of 'splittingSeed' called"
+    return self._splittingSeed
+  @splittingSeed.setter
+  def splittingSeed(self, value):
+    """Setter of the 'splittingSeed' property"""
+    if isinstance(value, (int, long)) or (isinstance(value, float) and value.is_integer()):
+      self._splittingSeed = int(value)
+    else:
+      raise TypeError("Splitting seed must be an integer")
 
   @property
   def doCombinatorics(self):
@@ -1305,7 +1322,7 @@ class NetworkBuilder(object):
       model.save(directory + "/" + fileName + "/E" + str(epoch) + ".h5")
     return
 
-  def save_history(self, directory, saveHistory = None, foldString = None):
+  def save_history(self, directory, saveModel = None, foldString = None):
     fileName = self.name
     if foldString is not None:
       fileName = fileName + "_" + str(foldString)
@@ -1315,8 +1332,8 @@ class NetworkBuilder(object):
     history = self.history
     if isinstance(history, list):
       history = self.history[0]
-    if saveHistory is not None:
-      history = saveHistory
+    if saveModel is not None:
+      history = self.history[saveModel]
 
     #print history
     import pickle
