@@ -1,5 +1,6 @@
 import root_numpy
 import pandas
+import numpy as np
 
 class BranchInformation(object):
   """
@@ -525,15 +526,14 @@ class SampleComponents(object):
     self._trainFiles = value
 
   def getData(self, selection, branches, fraction):
-    trainData = None
-    testData = None
+    allData = []
 
     if "weight" not in branches:
       branches.append("weight")
+    if "Event" not in branches:
+      branches.append("Event")
 
     if self._sampleType == "unified":
-      if "Event" not in branches:
-        branches.append("Event")
       Data = None
       for file in self.files:
         data = root_numpy.root2array(
@@ -550,10 +550,14 @@ class SampleComponents(object):
           Data = pandas.DataFrame(data)
         else:
           Data = testData.append(pandas.DataFrame(data), ignore_index=True)
-      Data["NNSearch_Class"] = Data["Event"] % 2
-      trainData = Data[Data["NNSearch_Class"] == 1]
-      testData = Data[Data["NNSearch_Class"] == 0]
+
+      if fraction < 1.0:
+        Data.weight = Data.weight/fraction
+
+      allData = [Data]
     elif self._sampleType == "legacy":
+      trainData = None
+      testData = None
       for file in self.trainFiles:
         data = root_numpy.root2array(
                                      file,
@@ -585,14 +589,16 @@ class SampleComponents(object):
           testData = pandas.DataFrame(data)
         else:
           testData = testData.append(pandas.DataFrame(data), ignore_index=True)
+
+      if fraction < 1.0:
+        trainData.weight = trainData.weight/fraction
+        testData.weight  = testData.weight/fraction
+
+      allData = [testData, trainData]
     else:
       raise ValueError("Unknown type '" + self._sampleType + "'")
 
-    if fraction < 1.0:
-      trainData.weight = trainData.weight/fraction
-      testData.weight  = testData.weight/fraction
-
-    return trainData, testData
+    return allData
 
 class NetworkSample(object):
   """
@@ -741,29 +747,29 @@ class NetworkSample(object):
       raise TypeError("Components must be a dictionary")
 
   def getData(self):
-    trainData = None
-    testData = None
+    allData = None
 
+    componentID = 0
     for componentName in self.components:
       component = self.components[componentName]
-      componentTrain, componentTest = component.getData(self._preselection, self._branches.keys(), self._fraction)
-      if trainData is None:
-        trainData = componentTrain
-      else:
-        trainData = trainData.append(componentTrain, ignore_index=True)
-      if testData is None:
-        testData = componentTest
-      else:
-        testData = testData.append(componentTest, ignore_index=True)
+      componentData = component.getData(self._preselection, self._branches.keys(), self._fraction)
+      componentData["NNSearch_componentID"] = componentID
+      componentID += 1
 
-    trainData["sampleWeight"] = trainData.weight
-    testData["sampleWeight"] = testData.weight
+      if allData is None:
+        allData = componentData
+      else:
+        for fold in range(len(allData)):
+          allData[fold] = allData[fold].append(componentData[fold], ignore_index=True)
+
+    for fold in range(len(allData)):
+      allData[fold]["sampleWeight"] = allData[fold].weight
 
     for weight in self.excludeWeight:
-      trainData.sampleWeight = trainData.sampleWeight/trainData[weight]
-      testData.sampleWeight  = testData.sampleWeight/testData[weight]
+      for fold in range(len(allData)):
+        allData[fold].sampleWeight = allData[fold].sampleWeight/allData[fold][weight]
 
-    return trainData, testData
+    return allData
 
 class NetworkBuilder(object):
   """
@@ -779,16 +785,19 @@ class NetworkBuilder(object):
     self.epochs          = self._rawSource["network"]["epochs"]
     self.batchSize       = self._rawSource["network"]["batchSize"]
     self.splitting       = "n-fold"
+    self.splittingType   = "random"
     self.numberFolds     = 3
     self.doCombinatorics = False
     self.fraction        = 1.0
     self.seed            = -1
     self.multiple        = 1
     self.preselection    = ""
+    if "splittingType" in self._rawSource["network"]:
+      self.splittingType   = self._rawSource["network"]["splittingType"]
     if "splitting" in self._rawSource["network"]:
       self.splitting   = self._rawSource["network"]["splitting"]
-    if "number_folds" in self._rawSource["network"]:
-      self.numberFolds   = self._rawSource["network"]["number_folds"]
+    if "numberFolds" in self._rawSource["network"]:
+      self.numberFolds   = self._rawSource["network"]["numberFolds"]
     if "doCombinatorics" in self._rawSource["network"]:
       self.doCombinatorics   = self._rawSource["network"]["doCombinatorics"]
     if "fraction" in self._rawSource["network"]:
@@ -827,14 +836,19 @@ class NetworkBuilder(object):
     if len(self.getFeatures()) < 1:
       raise ValueError("You must define at least 1 feature")
 
-    if len(vec) < 2:
+    if len(self.samples) < 2:
       raise ValueError("You must define at least 2 sample types")
 
     if self.samples[0].type is "legacy" and self.splitting is "n-fold":
       raise ValueError("Can not do n-folding with legacy samples")
 
+    if self.splitting is "n-fold" and self.numberFolds <= 2:
+      raise ValueError("The number of splitting folds must be greater than 2 for n-folding")
+
     if self.samples[0].type is "legacy" and self.numberFolds < 2:
       self.numberFolds = 2
+
+    np.random.seed(self.seed)
 
   @property
   def epochs(self):
@@ -885,6 +899,22 @@ class NetworkBuilder(object):
     if value not in validSplits:
       raise ValueError("Unknown type '" + value + "'")
     self._splitting = value
+
+  @property
+  def splittingType(self):
+    """The 'splittingType' property"""
+    if self._verbose:
+      print "Getter of 'splittingType' called"
+    return self._splittingType
+  @splittingType.setter
+  def splittingType(self, value):
+    """Setter of the 'splittingType' property """
+    if not isinstance(value, basestring):
+      raise TypeError("splittingType must be a string")
+    validSplits = ["random", "modulus"]
+    if value not in validSplits:
+      raise ValueError("Unknown type '" + value + "'")
+    self._splittingType = value
 
   @property
   def numberFolds(self):
@@ -1068,36 +1098,75 @@ class NetworkBuilder(object):
     self._name = value
 
   def getData(self):
-    trainData = None
-    testData = None
-
-    trainDataArray = []
-    testDataArray = []
+    allData = None
+    dataArray = []
 
     for sample in self.samples:
-      train, test = sample.getData()
-      trainDataArray.append(train)
-      testDataArray.append(test)
+      sampleData = sample.getData()
+      dataArray.append(sampleData)
 
-    for i in range(len(trainDataArray)):
-      trainDataArray[i]["category"]  = i
-      testDataArray[i]["category"]   = i
-      trainDataArray[i].sampleWeight = trainDataArray[i].sampleWeight/trainDataArray[i].sampleWeight.sum()
-      testDataArray[i].sampleWeight  = testDataArray[i].sampleWeight/testDataArray[i].sampleWeight.sum()
+    for i in range(len(dataArray)):
+      for fold in dataArray[i]:
+        fold["category"] = i
+        fold.sampleWeight = fold.sampleWeight/fold.sampleWeight.sum()
 
-    for train in trainDataArray:
-      if trainData is None:
-        trainData = train
+    for sample in dataArray:
+      if allData is None:
+        allData = sample
       else:
-        trainData = trainData.append(train, ignore_index=True)
+        for fold in range(len(allData)):
+          allData[fold] = allData[fold].append(sample[fold], ignore_index=True)
 
-    for test in testDataArray:
-      if testData is None:
-        testData = test
-      else:
-        testData = testData.append(test, ignore_index=True)
+    refold = 0
+    if self.splitting is "n-fold":
+      if len(allData) is not 1:
+        raise ValueError("Something went seriously wrong because folds are defined and I did not do the folding")
+      refold = self.numberFolds
+    elif self.splitting is "k-fold" and self.samples[0].type is not "legacy":
+      if len(allData) is not 1:
+        raise ValueError("Something went seriously wrong because folds are defined and I did not do the folding")
+      refold = 2
 
-    return trainData, testData
+    if refold > 1:
+      if self.splittingType is "random":
+        originalData = allData[0]
+        allData = None
+
+        originalData["NNSearch_Fold"] = refold
+
+        # Use stratified division in order to respect the proportion of each type of events
+        labels = range(len(self.samples))
+        for lbl in labels:
+          lblData = originalData[originalData["category"] == lbl]
+
+          components = lblData["NNSearch_componentID"].unique()
+          for comp in components:
+            cmpData = lblData[lblData["NNSearch_componentID"] == comp]
+            cmpSamplesPerFold = len(cmpData.index)/refold
+            tmpFoldedData = []
+            for i in range(1, refold):
+              fold = cmpData.sample(n=cmpSamplesPerFold)
+              fold["NNSearch_Fold"] = i - 1
+              cmpData = cmpData.drop(fold.index)
+              tmpFoldedData.append(fold)
+            cmpData["NNSearch_Fold"] = refold - 1
+            tmpFoldedData.append(cmpData)
+
+            if allData is None:
+              allData = tmpFoldedData
+            else:
+              for fold in range(len(allData)):
+                allData[fold] = allData[fold].append(tmpFoldedData[fold], ignore_index=True)
+      elif self.splittingType is "modulus":
+        originalData = allData[0]
+        allData = []
+
+        originalData["NNSearch_Fold"] = originalData["Event"] % refold
+        for i in range(refold):
+          fold = originalData[originalData["NNSearch_Fold"] == i]
+          allData.append(fold)
+
+    return allData
 
   def getFeatures(self):
     features = []
@@ -1108,25 +1177,29 @@ class NetworkBuilder(object):
     return features
 
   def train(self):
-    import numpy as np
     import keras
     features = self.getFeatures()
 
-    trainData, testData = self.getData()
+    allData = self.getData()
 
-    # TODO: implement k-folding
-    XDev = trainData.ix[:,self.getFeatures()]
-    XVal = testData.ix[:,self.getFeatures()]
-    YDev = None
-    YVal = None
-    if len(self.samples) > 2:
-      YDev = keras.utils.to_categorical(np.ravel(trainData.category), num_classes=len(self.samples))
-      YVal = keras.utils.to_categorical(np.ravel(testData.category), num_classes=len(self.samples))
-    else:
-      YDev = np.ravel(trainData.category)
-      YVal = np.ravel(testData.category)
-    weightDev = np.ravel(trainData.sampleWeight)
-    weightVal = np.ravel(testData.sampleWeight)
+    if self.splitting is "n-fold" and len(allData) is not len(self.numberFolds):
+      raise ValueError("Something went seriously wrong because the folds do not match the requested parameters")
+    if self.splitting is "k-fold" and len(allData) is not 2:
+      raise ValueError("Something went seriously wrong because the folds do not match the requested parameters")
+
+    XFeatures = []
+    YValues = []
+    weights = []
+    for fold in allData:
+      Xfold = fold.ix[:,self.getFeatures()]
+      Yfold = np.ravel(fold.category)
+      if len(self.samples) > 2:
+        Yfold = keras.utils.to_categporical(Yfold, num_classes=len(self.samples))
+      foldWeights = np.ravel(fold.sampleWeight)
+
+      XFeatures.append(Xfold)
+      YValues.append(Yfold)
+      weights.append(foldWeights)
 
     # TODO: what about regression? Should use loss MSE and the output of the last layer should not be sigmoid
     compileArgs = {
@@ -1142,7 +1215,6 @@ class NetworkBuilder(object):
     outputNeurons = len(self.samples)
     if outputNeurons == 2:
       outputNeurons = 1
-    self.model = self.topology.buildModel(len(self.getFeatures()), outputNeurons, compileArgs)
 
     trainParams = {
       "epochs": self.epochs,
@@ -1150,23 +1222,70 @@ class NetworkBuilder(object):
       "verbose": 1
     }
 
+
+    # Assume splitting only into two (this is not optimal because Test and Val are the same)
+    XTest = XFeatures[0]
+    XTrain = XFeatures[1]
+    XVal = XTest
+    YTest = YValues[0]
+    YTrain = YValues[1]
+    YVal = YTest
+    weightTest = weights[0]
+    weightTrain = weights[1]
+    weightVal = weightsTest
+    if self.splitting is "n-fold":
+      XTrain = None
+      YTrain = None
+      weightTrain = None
+      for fold in range(2, self.numberFolds):
+        if XTrain is None:
+          XTrain = XFeatures[fold]
+          YTrain = YValues[fold]
+          weightTrain = weights[fold]
+        else:
+          XTrain = XTrain.append(XFeatures[fold], ignore_index=True)
+          YTrain = YTrain.append(YValues[fold], ignore_index=True)
+          weightTrain = weightTrain.append(weights[fold], ignore_index=True)
+
+    self.model = self.topology.buildModel(len(self.getFeatures()), outputNeurons, compileArgs)
+
     import time
     start = time.time()
-    self.history = self.model.fit(XDev, YDev, validation_data=(XVal,YVal,weightVal), sample_weight=weightDev, **trainParams)
+    self.history = self.model.fit(XTrain, YTrain, validation_data=(XVal,YVal,weightVal), sample_weight=weightTrain, **trainParams)
     print("Training took ", time.time()-start, " seconds")
 
     return
 
-  def save_h5(self, directory, epoch = None):
+  def save_h5(self, directory, saveModel=None, epoch = None, foldString = None):
+    fileName = self.name
+    if foldString is not None:
+      fileName = fileName + "_" + str(foldString)
+
+    model = self.model
+    if isinstance(model, list):
+      model = self.model[0]
+    if saveModel is not None:
+      model = saveModel
+
     if epoch is None:
-      self.model.save(directory + "/" + self.name + ".h5")
+      model.save(directory + "/" + fileName + ".h5")
     else:
-      self.model.save(directory + "/" + self.name + "_E" + str(epoch) + ".h5")
+      model.save(directory + "/" + fileName + "_E" + str(epoch) + ".h5")
     return
 
-  def save_history(self, directory):
+  def save_history(self, directory, saveHistory = None, foldString = None):
+    fileName = self.name
+    if foldString is not None:
+      fileName = fileName + "_" + str(foldString)
+
+    history = self.history
+    if isinstance(history, list):
+      history = self.history[0]
+    if saveHistory is not None:
+      history = saveHistory
+
     import pickle
-    pickle.dump(self.history, open(directory + "/" + self.name + ".hist", "wb"))
+    pickle.dump(history, open(directory + "/" + fileName + ".hist", "wb"))
     return
 
 def make_sure_path_exists(path):
