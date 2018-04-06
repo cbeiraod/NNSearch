@@ -550,7 +550,7 @@ class SampleComponents(object):
         if Data is None:
           Data = pandas.DataFrame(data)
         else:
-          Data = testData.append(pandas.DataFrame(data), ignore_index=True)
+          Data = Data.append(pandas.DataFrame(data), ignore_index=True)
 
       if fraction < 1.0:
         Data.weight = Data.weight/fraction
@@ -830,7 +830,7 @@ class NetworkBuilder(object):
     for sample in self.samples:
       if firstType is None:
         firstType = sample.type
-      if firstType is not sample.type:
+      if firstType != sample.type:
         consistentType = False
         break
     if not consistentType:
@@ -842,13 +842,13 @@ class NetworkBuilder(object):
     if len(self.samples) < 2:
       raise ValueError("You must define at least 2 sample types")
 
-    if self.samples[0].type is "legacy" and self.splitting is "n-fold":
+    if self.samples[0].type == "legacy" and self.splitting == "n-fold":
       raise ValueError("Can not do n-folding with legacy samples")
 
-    if self.splitting is "n-fold" and self.numberFolds <= 2:
+    if self.splitting == "n-fold" and self.numberFolds <= 2:
       raise ValueError("The number of splitting folds must be greater than 2 for n-folding")
 
-    if self.samples[0].type is "legacy" and self.numberFolds < 2:
+    if self.samples[0].type == "legacy" and self.numberFolds < 2:
       self.numberFolds = 2
 
     np.random.seed(self.seed)
@@ -1132,17 +1132,17 @@ class NetworkBuilder(object):
           allData[fold] = allData[fold].append(sample[fold], ignore_index=True)
 
     refold = 0
-    if self.splitting is "n-fold":
-      if len(allData) is not 1:
+    if self.splitting == "n-fold":
+      if len(allData) != 1:
         raise ValueError("Something went seriously wrong because folds are defined and I did not do the folding")
       refold = self.numberFolds
-    elif self.splitting is "k-fold" and self.samples[0].type is not "legacy":
-      if len(allData) is not 1:
+    elif self.splitting == "k-fold" and self.samples[0].type != "legacy":
+      if len(allData) != 1:
         raise ValueError("Something went seriously wrong because folds are defined and I did not do the folding")
       refold = 2
 
     if refold > 1:
-      if self.splittingType is "random":
+      if self.splittingType == "random":
         originalData = allData[0]
         allData = None
 
@@ -1171,7 +1171,7 @@ class NetworkBuilder(object):
             else:
               for fold in range(len(allData)):
                 allData[fold] = allData[fold].append(tmpFoldedData[fold], ignore_index=True)
-      elif self.splittingType is "modulus":
+      elif self.splittingType == "modulus":
         originalData = allData[0]
         allData = []
 
@@ -1196,9 +1196,9 @@ class NetworkBuilder(object):
 
     allData = self.getData()
 
-    if self.splitting is "n-fold" and len(allData) is not len(self.numberFolds):
+    if self.splitting == "n-fold" and len(allData) != self.numberFolds:
       raise ValueError("Something went seriously wrong because the folds do not match the requested parameters")
-    if self.splitting is "k-fold" and len(allData) is not 2:
+    if self.splitting == "k-fold" and len(allData) != 2:
       raise ValueError("Something went seriously wrong because the folds do not match the requested parameters")
 
     XFeatures = []
@@ -1247,7 +1247,7 @@ class NetworkBuilder(object):
     weightTest = weights[0]
     weightTrain = weights[1]
     weightVal = weightTest
-    if self.splitting is "n-fold":
+    if self.splitting == "n-fold":
       XTrain = None
       YTrain = None
       weightTrain = None
