@@ -12,7 +12,8 @@
     "batchSize":32,
 
     "splitting":"n-fold",
-    "number_folds":3,
+    "splittingType":"modulus",
+    "numberFolds":3,
     "doCombinatorics":false,
 
     "optimizer":{
