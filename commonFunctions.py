@@ -1318,8 +1318,9 @@ class NetworkBuilder(object):
     if saveHistory is not None:
       history = saveHistory
 
+    #print history
     import pickle
-    pickle.dump(history, open(directory + "/" + fileName + "/hist.pkl", "wb"))
+    pickle.dump(history.history, open(directory + "/" + fileName + "/hist.pkl", "wb"))
     return
 
 def make_sure_path_exists(path):
