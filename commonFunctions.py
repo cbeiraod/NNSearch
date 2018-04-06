@@ -754,7 +754,8 @@ class NetworkSample(object):
     for componentName in self.components:
       component = self.components[componentName]
       componentData = component.getData(self._preselection, self._branches.keys(), self._fraction)
-      componentData["NNSearch_componentID"] = componentID
+      for fold in componentData:
+        fold["NNSearch_componentID"] = componentID
       componentID += 1
 
       if allData is None:
