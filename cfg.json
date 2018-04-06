@@ -6,7 +6,9 @@
       "activation":"relu",
       "nLayers":2,
       "neurons":20,
-      "dropout":0
+      "dropout":0,
+      "l1":0,
+      "l2":0
     },
     "epochs":300,
     "batchSize":32,

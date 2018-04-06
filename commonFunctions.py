@@ -110,6 +110,8 @@ class NetworkTopology(object):
     self.nLayers = self._rawSource["nLayers"]
     self.neurons = self._rawSource["neurons"]
     self.dropout = self._rawSource["dropout"]
+    self.l1 = self._rawSource["l1"]
+    self.l2 = self._rawSource["l2"]
 
   @property
   def type(self):
@@ -194,25 +196,61 @@ class NetworkTopology(object):
     else:
       raise TypeError("dropout must be a double")
 
+  @property
+  def l1(self):
+    """The 'l1' property"""
+    if self._verbose:
+      print "Getter of 'l1' called"
+    return self._l1
+  @l1.setter
+  def l1(self, value):
+    """Setter of the 'l1' property"""
+    if isinstance(value, (int, long, float)):
+      if value < 0:
+        raise ValueError("L1 must be positive")
+      else:
+        self._l1 = float(value)
+    else:
+      raise TypeError("L1 must be a double")
+
+  @property
+  def l2(self):
+    """The 'l2' property"""
+    if self._verbose:
+      print "Getter of 'l2' called"
+    return self._l2
+  @l2.setter
+  def l2(self, value):
+    """Setter of the 'l2' property"""
+    if isinstance(value, (int, long, float)):
+      if value < 0:
+        raise ValueError("L2 must be positive")
+      else:
+        self._l2 = float(value)
+    else:
+      raise TypeError("L2 must be a double")
+
   def buildModel(self, nIn, nOut, compileArgs):
     from keras.models import Sequential
     from keras.layers import Dense, Dropout, AlphaDropout
+    from keras.regularizers import l1,l2
+
     if self.type == "simple":
       model = Sequential()
-      model.add(Dense(self.neurons, input_dim=nIn, kernel_initializer='he_normal', activation=self.activation))
+      model.add(Dense(self.neurons, input_dim=nIn, kernel_initializer='he_normal', activation=self.activation, kernel_regularizer=l1_l2(l1=self.l1, l2=self.l2)))
       if self.dropout > 0:
         if self.activation == "selu":
           model.add(AlphaDropout(self.dropout))
         else:
           model.add(Dropout(self.dropout))
       for i in range(self.nLayers - 1):
-        model.add(Dense(self.neurons, kernel_initializer='he_normal', activation=self.activation))
+        model.add(Dense(self.neurons, kernel_initializer='he_normal', activation=self.activation, kernel_regularizer=l1_l2(l1=self.l1, l2=self.l2)))
         if self.dropout > 0:
           if self.activation == "selu":
             model.add(AlphaDropout(self.dropout))
           else:
             model.add(Dropout(self.dropout))
-      model.add(Dense(nOut, activation="sigmoid", kernel_initializer='glorot_normal'))
+      model.add(Dense(nOut, activation="sigmoid", kernel_initializer='glorot_normal',kernel_regularizer=l1_l2(l1=self.l1, l2=self.l2)))
       model.compile(**compileArgs)
       return model
     return None
