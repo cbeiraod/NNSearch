@@ -1292,6 +1292,25 @@ class NetworkBuilder(object):
 
     return
 
+  def internalTrain(self, name, XTrain, XValidation, YTrain, YValidation, weightTrain, weightValidation, compileArgs, trainParams):
+    outputNeurons = len(self.samples)
+    if outputNeurons == 2:
+      outputNeurons = 1
+
+    transformations = {}
+
+    transformations["scaler"] = StandardScaler().fit(XTrain)
+    XTrain = transformations["scaler"].transform(XTrain)
+    XValidation = transformations["scaler"].transform(XValidation)
+
+    model = self.topology.buildModel(len(self.getFeatures()), outputNeurons, compileArgs)
+    import time
+    start = time.time()
+    history = model.fit(XTrain, YTrain, sample_weight=weightTrain, validation_data=(XValidation, YValidation, weightValidation), **trainParams)
+    print("Training ", name, " took ", time.time()-start, " seconds")
+
+    return transformations, model, history
+
   def save_h5(self, directory, saveModel=None, epoch = None, foldString = None):
     from sklearn.externals import joblib
 
