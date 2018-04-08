@@ -1225,7 +1225,7 @@ class NetworkBuilder(object):
       Xfold = fold.ix[:,self.getFeatures()]
       Yfold = np.ravel(fold.category)
       if len(self.samples) > 2:
-        Yfold = keras.utils.to_categporical(Yfold, num_classes=len(self.samples))
+        Yfold = keras.utils.to_categorical(Yfold, num_classes=len(self.samples))
       foldWeights = np.ravel(fold.sampleWeight)
 
       XFeatures.append(Xfold)
