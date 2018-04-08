@@ -9,11 +9,12 @@
       "dropout":0
     },
     "epochs":300,
-    "batchSize":32,
+    "batchSize":320,
 
     "splitting":"n-fold",
     "splittingType":"modulus",
     "numberFolds":3,
+    "splittingSeed":42,
     "doCombinatorics":false,
 
     "optimizer":{
