@@ -107,12 +107,26 @@ class NetworkTopology(object):
     self._batch = batch
 
     self.type = self._rawSource["type"]
-    self.activation = self._rawSource["activation"]
-    self.nLayers = self._rawSource["nLayers"]
-    self.neurons = self._rawSource["neurons"]
-    self.dropout = self._rawSource["dropout"]
-    self.l1 = self._rawSource["l1"]
-    self.l2 = self._rawSource["l2"]
+
+    if self.type == "simple":
+      self.nLayers = self._rawSource["nLayers"]
+      self.neurons = self._rawSource["neurons"]
+
+      self.activation = "relu"
+      if "activation" in self._rawSource:
+        self.activation = self._rawSource["activation"]
+
+      self.dropout = 0
+      if "dropout" in self._rawSource:
+        self.dropout = self._rawSource["dropout"]
+
+      self.l1 = 0
+      if "l1" in self._rawSource:
+        self.l1 = self._rawSource["l1"]
+
+      self.l2 = 0
+      if "l2" in self._rawSource:
+        self.l2 = self._rawSource["l2"]
 
   @property
   def type(self):
