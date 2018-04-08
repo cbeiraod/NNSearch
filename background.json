@@ -1,22 +1,28 @@
 {
   "sample":{
-    "type":"legacy",
-    "basePath":"/lstore/cms/cbeiraod/Stop4Body",
+    "type":"unified",
+    "basePath":"./",
+    "foldedPath":"./trainFolded",
     "suffix":"skimmed",
     "components":[
       {
         "name":"ttbar",
         "tag":"ttbar",
         "label":"t\\bar{t}",
+        "files":[
+          "train/TTJets_DiLepton",
+          "train/TTJets_SingleLeptonFromTbar",
+          "train/TTJets_SingleLeptonFromT"
+        ],
         "trainFiles":[
-          "nTuples_v2017-10-19_train_skimmed/TTJets_DiLepton",
-          "nTuples_v2017-10-19_train_skimmed/TTJets_SingleLeptonFromTbar",
-          "nTuples_v2017-10-19_train_skimmed/TTJets_SingleLeptonFromT"
+          "train/TTJets_DiLepton",
+          "train/TTJets_SingleLeptonFromTbar",
+          "train/TTJets_SingleLeptonFromT"
         ],
         "testFiles":[
-          "nTuples_v2017-10-19_test_skimmed/TTJets_DiLepton",
-          "nTuples_v2017-10-19_test_skimmed/TTJets_SingleLeptonFromTbar",
-          "nTuples_v2017-10-19_test_skimmed/TTJets_SingleLeptonFromT"
+          "test/TTJets_DiLepton",
+          "test/TTJets_SingleLeptonFromTbar",
+          "test/TTJets_SingleLeptonFromT"
         ],
         "color":809,
         "lcolor":1,
@@ -27,25 +33,35 @@
         "name":"wjets",
         "tag":"wjets",
         "label":"w+jets",
+        "files":[
+          "train/Wjets_100to200",
+          "train/Wjets_1200to2500",
+          "train/Wjets_200to400",
+          "train/Wjets_2500toInf",
+          "train/Wjets_400to600",
+          "train/Wjets_600to800",
+          "train/Wjets_70to100",
+          "train/Wjets_800to1200"
+        ],
         "trainFiles":[
-          "nTuples_v2017-10-19_train_skimmed/Wjets_100to200",
-          "nTuples_v2017-10-19_train_skimmed/Wjets_1200to2500",
-          "nTuples_v2017-10-19_train_skimmed/Wjets_200to400",
-          "nTuples_v2017-10-19_train_skimmed/Wjets_2500toInf",
-          "nTuples_v2017-10-19_train_skimmed/Wjets_400to600",
-          "nTuples_v2017-10-19_train_skimmed/Wjets_600to800",
-          "nTuples_v2017-10-19_train_skimmed/Wjets_70to100",
-          "nTuples_v2017-10-19_train_skimmed/Wjets_800to1200"
+          "train/Wjets_100to200",
+          "train/Wjets_1200to2500",
+          "train/Wjets_200to400",
+          "train/Wjets_2500toInf",
+          "train/Wjets_400to600",
+          "train/Wjets_600to800",
+          "train/Wjets_70to100",
+          "train/Wjets_800to1200"
         ],
         "testFiles":[
-          "nTuples_v2017-10-19_test_skimmed/Wjets_100to200",
-          "nTuples_v2017-10-19_test_skimmed/Wjets_1200to2500",
-          "nTuples_v2017-10-19_test_skimmed/Wjets_200to400",
-          "nTuples_v2017-10-19_test_skimmed/Wjets_2500toInf",
-          "nTuples_v2017-10-19_test_skimmed/Wjets_400to600",
-          "nTuples_v2017-10-19_test_skimmed/Wjets_600to800",
-          "nTuples_v2017-10-19_test_skimmed/Wjets_70to100",
-          "nTuples_v2017-10-19_test_skimmed/Wjets_800to1200"
+          "test/Wjets_100to200",
+          "test/Wjets_1200to2500",
+          "test/Wjets_200to400",
+          "test/Wjets_2500toInf",
+          "test/Wjets_400to600",
+          "test/Wjets_600to800",
+          "test/Wjets_70to100",
+          "test/Wjets_800to1200"
         ],
         "color":8023,
         "lcolor":1,
@@ -56,23 +72,32 @@
         "name":"zjets",
         "tag":"",
         "label":"",
+        "files":[
+          "train/ZJetsToNuNu_HT100to200",
+          "train/ZJetsToNuNu_HT1200to2500",
+          "train/ZJetsToNuNu_HT200to400",
+          "train/ZJetsToNuNu_HT2500toInf",
+          "train/ZJetsToNuNu_HT400to600",
+          "train/ZJetsToNuNu_HT600to800",
+          "train/ZJetsToNuNu_HT800to1200"
+        ],
         "trainFiles":[
-          "nTuples_v2017-10-19_train_skimmed/ZJetsToNuNu_HT100to200",
-          "nTuples_v2017-10-19_train_skimmed/ZJetsToNuNu_HT1200to2500",
-          "nTuples_v2017-10-19_train_skimmed/ZJetsToNuNu_HT200to400",
-          "nTuples_v2017-10-19_train_skimmed/ZJetsToNuNu_HT2500toInf",
-          "nTuples_v2017-10-19_train_skimmed/ZJetsToNuNu_HT400to600",
-          "nTuples_v2017-10-19_train_skimmed/ZJetsToNuNu_HT600to800",
-          "nTuples_v2017-10-19_train_skimmed/ZJetsToNuNu_HT800to1200"
+          "train/ZJetsToNuNu_HT100to200",
+          "train/ZJetsToNuNu_HT1200to2500",
+          "train/ZJetsToNuNu_HT200to400",
+          "train/ZJetsToNuNu_HT2500toInf",
+          "train/ZJetsToNuNu_HT400to600",
+          "train/ZJetsToNuNu_HT600to800",
+          "train/ZJetsToNuNu_HT800to1200"
         ],
         "testFiles":[
-          "nTuples_v2017-10-19_test_skimmed/ZJetsToNuNu_HT100to200",
-          "nTuples_v2017-10-19_test_skimmed/ZJetsToNuNu_HT1200to2500",
-          "nTuples_v2017-10-19_test_skimmed/ZJetsToNuNu_HT200to400",
-          "nTuples_v2017-10-19_test_skimmed/ZJetsToNuNu_HT2500toInf",
-          "nTuples_v2017-10-19_test_skimmed/ZJetsToNuNu_HT400to600",
-          "nTuples_v2017-10-19_test_skimmed/ZJetsToNuNu_HT600to800",
-          "nTuples_v2017-10-19_test_skimmed/ZJetsToNuNu_HT800to1200"
+          "test/ZJetsToNuNu_HT100to200",
+          "test/ZJetsToNuNu_HT1200to2500",
+          "test/ZJetsToNuNu_HT200to400",
+          "test/ZJetsToNuNu_HT2500toInf",
+          "test/ZJetsToNuNu_HT400to600",
+          "test/ZJetsToNuNu_HT600to800",
+          "test/ZJetsToNuNu_HT800to1200"
         ],
         "color":802,
         "lcolor":1,
