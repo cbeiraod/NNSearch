@@ -1397,3 +1397,17 @@ def query_yes_no(question, default=None):
       return answers[choice]
     else:
       sys.stdout.write("Please respond with 'yes' or 'no' (or 'y' or 'n').\n")
+
+def listDir(path):
+  import subprocess
+  cmd = "ls " + path
+  p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  out, err = p.communicate()
+  return out.split()
+
+def remove_field_name(a, name):
+  names = list(a.dtype.names)
+  if name in names:
+    names.remove(name)
+  b = a[names]
+  return b
