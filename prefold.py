@@ -89,7 +89,7 @@ def fold(inFile, outFile, foldingType, folds, splitting, presplit = None, verbos
 
   npData = pdData.to_records()
   npData = funk.remove_field_name(npData, "index") # To remove the index, but keeping it might make things better???
-  root_numpy.array2root(npData, outFile, 'bdttree_folds')
+  root_numpy.array2root(npData, outFile, 'bdttree_folds', mode='recreate')
 
   return
 
