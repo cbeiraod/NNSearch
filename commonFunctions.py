@@ -7,7 +7,8 @@ class BranchInformation(object):
   """
   A class to help handle the branches from the cfg files
   """
-  def __init__(self, cfgJson, verbose = False, batch = False):
+  def __init__(self, cfgJson, verbose = False, batch = False, tmpdir = None):
+    self._tmpdir = tmpdir
     self._rawSource = cfgJson
     self._verbose = verbose
     self._batch = batch
@@ -101,7 +102,8 @@ class NetworkTopology(object):
   """
   A class to help handle the network topology
   """
-  def __init__(self, cfgJson, verbose = False, batch = False):
+  def __init__(self, cfgJson, verbose = False, batch = False, tmpdir = None):
+    self._tmpdir = tmpdir
     self._rawSource = cfgJson
     self._verbose = verbose
     self._batch = batch
@@ -274,7 +276,8 @@ class NetworkOptimizer(object):
   """
   A class to help handle the network optimizer
   """
-  def __init__(self, cfgJson, verbose = False, batch = False):
+  def __init__(self, cfgJson, verbose = False, batch = False, tmpdir = None):
+    self._tmpdir = tmpdir
     self._rawSource = cfgJson
     self._verbose = verbose
     self._batch = batch
@@ -362,7 +365,8 @@ class SampleComponents(object):
   """
   A class to help handle reading the sample components
   """
-  def __init__(self, cfgJson, sampleType, basePath, foldedPath, foldSuffix, suffix = "", verbose = False, batch = False):
+  def __init__(self, cfgJson, sampleType, basePath, foldedPath, foldSuffix, suffix = "", verbose = False, batch = False, tmpdir = None):
+    self._tmpdir = tmpdir
     self._rawSource = cfgJson
     self._verbose = verbose
     self._batch = batch
@@ -589,6 +593,11 @@ class SampleComponents(object):
   def getData(self, selection, branches, fraction):
     Data = None
 
+    tmpFile = None
+    if self._tmpdir is not None:
+      import ROOT
+      tmpFile = ROOT.TFile(self._tmpdir + "/tmpFile.root", "RECREATE")
+
     if "weight" not in branches:
       branches.append("weight")
     if "Event" not in branches:
@@ -615,7 +624,6 @@ class SampleComponents(object):
 
         foldedData = pandas.concat([pdAllData, pdAllDataFolds], axis=1, join='inner')
         npFoldedData = foldedData.to_records()
-        # TODO: open here a temporary root file (maybe move it out of the loop)
         tree = root_numpy.array2tree(npFoldedData, name='tmp_tree')
 
         npData = root_numpy.tree2array(
@@ -652,7 +660,6 @@ class SampleComponents(object):
 
         foldedData = pandas.concat([pdAllData, pdAllDataFolds], axis=1, join='inner')
         npFoldedData = foldedData.to_records()
-        # TODO: open here a temporary root file (maybe move it out of the loop)
         tree = root_numpy.array2tree(npFoldedData, name='tmp_tree')
 
         npData = root_numpy.tree2array(
@@ -685,7 +692,6 @@ class SampleComponents(object):
 
         foldedData = pandas.concat([pdAllData, pdAllDataFolds], axis=1, join='inner')
         npFoldedData = foldedData.to_records()
-        # TODO: open here a temporary root file (maybe move it out of the loop)
         tree = root_numpy.array2tree(npFoldedData, name='tmp_tree')
 
         npData = root_numpy.tree2array(
@@ -708,13 +714,17 @@ class SampleComponents(object):
     else:
       raise ValueError("Unknown type '" + self._sampleType + "'")
 
+    if tmpFile is not None:
+      tmpFile.Close()
+
     return Data
 
 class NetworkSample(object):
   """
   A class to help handle reading the sample files
   """
-  def __init__(self, cfgJson, preselection, fraction, branches, foldSuffix, verbose = False, batch = False):
+  def __init__(self, cfgJson, preselection, fraction, branches, foldSuffix, verbose = False, batch = False, tmpdir = None):
+    self._tmpdir = tmpdir
     self._rawSource = cfgJson
     self._verbose = verbose
     self._batch = batch
@@ -758,7 +768,7 @@ class NetworkSample(object):
     if "components" not in self._rawCfg["sample"]:
       raise KeyError("sample '" + self.name + "' does not have any components")
     for component in self._rawCfg["sample"]["components"]:
-      tmp = SampleComponents(component, self.type, self.basePath, self.foldedPath, self._foldSuffix, suffix = self.suffix, verbose = self._verbose, batch = self._batch)
+      tmp = SampleComponents(component, self.type, self.basePath, self.foldedPath, self._foldSuffix, suffix = self.suffix, verbose = self._verbose, batch = self._batch, tmpdir=self._tmpdir)
       self.components[tmp.name] = tmp
 
   @property
@@ -905,8 +915,9 @@ class NetworkBuilder(object):
   """
   A class to help handle reading the cfg file and then building/training the NN
   """
-  def __init__(self, cfgJson, verbose=False, batch=False):
+  def __init__(self, cfgJson, verbose = False, batch = False, tmpdir = None):
     import json
+    self._tmpdir = tmpdir
     self._rawSource = json.load(open(cfgJson, "rb"))
     self._verbose = verbose
     self._batch = batch
@@ -959,7 +970,7 @@ class NetworkBuilder(object):
       foldSuffix = "k" + str(self.numberFolds)
     self.samples = []
     for sample in self._rawSource["network"]["samples"]:
-      tmp = NetworkSample(sample, self.preselection, self.fraction, self.branches, foldSuffix, verbose=self._verbose, batch=self._batch)
+      tmp = NetworkSample(sample, self.preselection, self.fraction, self.branches, foldSuffix, verbose=self._verbose, batch=self._batch, tmpdir=self._tmpdir)
       self.samples.append(tmp)
 
     consistentType = True
