@@ -1297,24 +1297,16 @@ class NetworkBuilder(object):
 
     allData = self.getData()
 
-    if self.splitting == "n-fold" and len(allData) != self.numberFolds:
+    if self.splitting == "n-fold" and len(allData.foldID.unique()) != self.numberFolds:
       raise ValueError("Something went seriously wrong because the folds do not match the requested parameters")
-    if self.splitting == "k-fold" and len(allData) != 2:
+    if self.splitting == "k-fold" and len(allData.foldID.unique()) != 2*self.numberFolds:
       raise ValueError("Something went seriously wrong because the folds do not match the requested parameters")
 
-    XFeatures = []
-    YValues = []
-    weights = []
-    for fold in allData:
-      Xfold = fold.ix[:,self.getFeatures()]
-      Yfold = np.ravel(fold.category)
-      if len(self.samples) > 2:
-        Yfold = keras.utils.to_categorical(Yfold, num_classes=len(self.samples))
-      foldWeights = np.ravel(fold.sampleWeight)
-
-      XFeatures.append(Xfold)
-      YValues.append(Yfold)
-      weights.append(foldWeights)
+    XFeatures = allData.ix[:,self.getFeatures()]
+    YValues = np.ravel(allData.category)
+    if len(self.samples) > 2:
+      YValues = keras.utils.to_categorical(YValues, num_classes=len(self.samples))
+    weights = np.ravel(allData.sampleWeight)
 
     # TODO: what about regression? Should use loss MSE and the output of the last layer should not be sigmoid
     compileArgs = {
@@ -1337,42 +1329,66 @@ class NetworkBuilder(object):
       "verbose": 1
     }
 
-
-    # Assume splitting only into two (this is not optimal because Test and Val are the same)
-    XTest = XFeatures[0]
-    XTrain = XFeatures[1]
-    XVal = XTest
-    YTest = YValues[0]
-    YTrain = YValues[1]
-    YVal = YTest
-    weightTest = weights[0]
-    weightTrain = weights[1]
-    weightVal = weightTest
+    foldCombinatorics = {}
     if self.splitting == "n-fold":
-      XTrain = None
-      YTrain = None
-      weightTrain = None
-      for fold in range(2, self.numberFolds):
-        if XTrain is None:
-          XTrain = XFeatures[fold]
-          YTrain = YValues[fold]
-          weightTrain = weights[fold]
-        else:
-          XTrain = XTrain.append(XFeatures[fold], ignore_index=True)
-          YTrain = YTrain.append(YValues[fold], ignore_index=True)
-          weightTrain = weightTrain.append(weights[fold], ignore_index=True)
+      for test in range(self.numberFolds):
+        for val in range(self.numberFolds):
+          if test == val:
+            continue
+          tmp = {}
+          tmp["testFoldID"] = test
+          tmp["valFoldID"] = val
 
-    self.transformations["scaler"] = StandardScaler().fit(XTrain)
-    XTrain = self.transformations["scaler"].transform(XTrain)
-    XTest = self.transformations["scaler"].transform(XTest)
-    XVal = self.transformations["scaler"].transform(XVal)
+          tmp["testFold"]  = (allData.foldID == test)
+          tmp["valFold"]   = (allData.foldID == val)
+          tmp["trainFold"] = np.logical_not(np.logical_or(tmp["testFold"], tmp["valFold"]))
 
-    self.model = self.topology.buildModel(len(self.getFeatures()), outputNeurons, compileArgs)
+          name = "t" + str(test) + "_v" + str(val)
+          foldCombinatorics[name] = tmp
+    elif self.splitting == "k-fold":
+      for test in [0,1]:
+        for val in range(self.numberFolds):
+          tmp = {}
+          tmp["testFoldID"] = test
+          tmp["valFoldID"] = val
 
-    import time
-    start = time.time()
-    self.history = self.model.fit(XTrain, YTrain, validation_data=(XVal,YVal,weightVal), sample_weight=weightTrain, **trainParams)
-    print("Training took ", time.time()-start, " seconds")
+          tmp["testFold"]  = (allData.fold_a == test)
+          tmp["valFold"]   = (allData.foldID == (((test+1)%2)*self.numberFolds + val))
+          tmp["trainFold"] = np.logical_not(np.logical_or(tmp["testFold"], tmp["valFold"]))
+
+          name = "t" + str(test) + "_v" + str(val)
+          foldCombinatorics[name] = tmp
+
+          #print "test",  np.unique(tmp["testFold"], return_counts=True)
+          #print "val",   np.unique(tmp["valFold"], return_counts=True)
+          #print "train", np.unique(tmp["trainFold"], return_counts=True)
+
+    #print np.unique(testFold, return_counts=True)
+    #print XFeatures[trainFold].describe()
+    #print len(YValues[trainFold])
+
+    self.transformations = []
+    self.model = []
+    self.history = []
+    for name, combinatoricPoint in foldCombinatorics.iteritems():
+      transformations, model, history = self.internalTrain(
+                                                            name,
+                                                            XFeatures[combinatoricPoint["trainFold"]],
+                                                            XFeatures[combinatoricPoint["valFold"]],
+                                                            YValues[combinatoricPoint["trainFold"]],
+                                                            YValues[combinatoricPoint["valFold"]],
+                                                            weights[combinatoricPoint["trainFold"]],
+                                                            weights[combinatoricPoint["valFold"]],
+                                                            compileArgs,
+                                                            trainParams
+                                                          )
+
+      self.transformations.append(transformations)
+      self.model.append(model)
+      self.history.append(history)
+
+      if not self.doCombinatorics:
+        break
 
     return
 
