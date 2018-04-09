@@ -1415,6 +1415,11 @@ class NetworkBuilder(object):
 
     return transformations, model, history
 
+  def saveAllFolds(self, directory):
+    for index, info in self._foldInfo.iteritems():
+      self.save_h5(directory, saveModel=index, foldString=info["name"])
+      self.save_history(directory, saveModel=index, foldString=info["name"])
+
   def save_h5(self, directory, saveModel=None, epoch = None, foldString = None):
     from sklearn.externals import joblib
 
