@@ -95,6 +95,7 @@ def fold(inFile, outFile, foldingType, folds, splitting, presplit = None, verbos
 
 def recursiveFolding(baseDir, outDir, foldingType, folds, splitting, presplit = None, verbose = False):
   import os
+  import ROOT
   funk.make_sure_path_exists(outDir)
 
   folds =  int(folds)
@@ -111,7 +112,10 @@ def recursiveFolding(baseDir, outDir, foldingType, folds, splitting, presplit = 
       recursiveFolding(baseDir + "/" + nub, outDir + "/" + nub, foldingType, folds, splitting, presplit, verbose)
     elif os.path.isfile(baseDir + "/" + nub):
       if nub[-4:] == "root":
-        fold(baseDir + "/" + nub, outDir + "/" + nub[:-5], foldingType, folds, splitting, presplit, verbose)
+        file = ROOT.TFile(baseDir + "/" + nub, "READ")
+        tree = file.Get("bdttree")
+        if tree is not None:
+          fold(baseDir + "/" + nub, outDir + "/" + nub[:-5], foldingType, folds, splitting, presplit, verbose)
     else:
       print "Weird stuff is happening, will ignore it."
 
