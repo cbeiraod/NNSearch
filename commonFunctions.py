@@ -248,7 +248,7 @@ class NetworkTopology(object):
   def buildModel(self, nIn, nOut, compileArgs):
     from keras.models import Sequential
     from keras.layers import Dense, Dropout, AlphaDropout
-    from keras.regularizers import l1,l2
+    from keras.regularizers import l1_l2
 
     if self.type == "simple":
       model = Sequential()
