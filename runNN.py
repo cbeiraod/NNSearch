@@ -40,7 +40,7 @@ if __name__ == "__main__":
         sys.exit(0)
 
 
-  myNetwork = funk.NetworkBuilder(args.configFile, batch=args.batch, verbose=args.verbose)
+  myNetwork = funk.NetworkBuilder(args.configFile, batch=args.batch, verbose=args.verbose, tmpdir=args.outDirectory)
 
 
   myNetwork.train()
