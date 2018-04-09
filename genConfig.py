@@ -47,9 +47,11 @@ def consolidateListIntType(myList,intTypeList):
                 myList[i][intTypeList[j]] = int(math.floor(myList[i][intTypeList[j]]))
     return myList
 
-def createJson(pointParam,cfgJson):
+def createJson(name,pointParam,cfgJson):
 
     newJson = deepcopy(cfgJson)
+
+    newJson["network"]["name"] = name
 
     if "layers" in pointParam:
         newJson["network"]["topology"]["layers"] = pointParam["layers"]
@@ -77,7 +79,7 @@ def saveJsons(myList,cfgJson,dir):
         name = getNameFromPoint(pointParam)
         path = dir+"/"+name+"/"
         make_sure_path_exists(path)
-        newJson = createJson(pointParam,cfgJson)
+        newJson = createJson(name,pointParam,cfgJson)
         with open(path+'cfg.json', 'w') as outfile:
             json.dump(newJson, outfile, sort_keys = True, indent = 4, ensure_ascii = False)
 
