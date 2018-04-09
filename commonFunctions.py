@@ -1370,6 +1370,7 @@ class NetworkBuilder(object):
     self.transformations = []
     self.model = []
     self.history = []
+    index = 0
     for name, combinatoricPoint in foldCombinatorics.iteritems():
       transformations, model, history = self.internalTrain(
                                                             name,
@@ -1386,7 +1387,10 @@ class NetworkBuilder(object):
       self.transformations.append(transformations)
       self.model.append(model)
       self.history.append(history)
+      tmp = {'name': name, 'index':index, 'testID': combinatoricPoint["testFoldID"], 'valID': combinatoricPoint["valFoldID"]}
+      self._foldInfo[index] = tmp
 
+      index = index + 1
       if not self.doCombinatorics:
         break
 
