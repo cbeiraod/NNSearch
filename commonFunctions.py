@@ -1354,6 +1354,10 @@ class NetworkBuilder(object):
           tmp["valFold"]   = (allData.foldID == val)
           tmp["trainFold"] = np.logical_not(np.logical_or(tmp["testFold"], tmp["valFold"]))
 
+          tmp["testScale"] = self.numberFolds
+          tmp["valScale"] = self.numberFolds
+          tmp["trainScale"] = self.numberFolds/(self.numberFolds - 2)
+
           name = "t" + str(test) + "_v" + str(val)
           foldCombinatorics[name] = tmp
     elif self.splitting == "k-fold":
@@ -1366,6 +1370,10 @@ class NetworkBuilder(object):
           tmp["testFold"]  = (allData.fold_a == test)
           tmp["valFold"]   = (allData.foldID == (((test+1)%2)*self.numberFolds + val))
           tmp["trainFold"] = np.logical_not(np.logical_or(tmp["testFold"], tmp["valFold"]))
+
+          tmp["testScale"] = 2
+          tmp["valScale"] = self.numberFolds * 2
+          tmp["trainScale"] = 2 * self.numberFolds/(self.numberFolds - 1)
 
           name = "t" + str(test) + "_v" + str(val)
           foldCombinatorics[name] = tmp
@@ -1389,8 +1397,8 @@ class NetworkBuilder(object):
                                                             XFeatures[combinatoricPoint["valFold"]],
                                                             YValues[combinatoricPoint["trainFold"]],
                                                             YValues[combinatoricPoint["valFold"]],
-                                                            weights[combinatoricPoint["trainFold"]],
-                                                            weights[combinatoricPoint["valFold"]],
+                                                            weights[combinatoricPoint["trainFold"]] * combinatoricPoint["trainScale"],
+                                                            weights[combinatoricPoint["valFold"]] * combinatoricPoint["valScale"],
                                                             compileArgs,
                                                             trainParams
                                                           )
@@ -1398,7 +1406,7 @@ class NetworkBuilder(object):
       self.transformations.append(transformations)
       self.model.append(model)
       self.history.append(history)
-      tmp = {'name': name, 'index':index, 'testID': combinatoricPoint["testFoldID"], 'valID': combinatoricPoint["valFoldID"]}
+      tmp = {'name': name, 'index': index, 'testID': combinatoricPoint["testFoldID"], 'valID': combinatoricPoint["valFoldID"]}
       self._foldInfo[index] = tmp
 
       index = index + 1
@@ -1418,10 +1426,34 @@ class NetworkBuilder(object):
     XTrain = transformations["scaler"].transform(XTrain)
     XValidation = transformations["scaler"].transform(XValidation)
 
+    from keras.callbacks import Callback
+
+    class roc_callback(Callback):
+      def __init__(self, XTrain, XValidation, YTrain, YValidation, weightTrain, weightValidation):
+        self.x = XTrain
+        self.y = YTrain
+        self.w = weightTrain
+        self.x_val = XValidation
+        self.y_val = YValidation
+        self.w_val = weightValidation
+
+      def on_epoch_end(self, epoch, logs={}):
+        from sklearn.metrics import roc_auc_score
+
+        y_pred = self.model.predict(self.x)
+        roc = roc_auc_score(self.y, y_pred, sample_weight=self.w)
+        y_pred_val = self.model.predict(self.x_val)
+        roc_val = roc_auc_score(self.y_val, y_pred_val, sample_weight=self.w_val)
+        logs["roc"] = roc
+        logs["val_roc"] = roc_val
+
+    callbacks = []
+    callbacks.append(roc_callback(XTrain, XValidation, YTrain, YValidation, weightTrain, weightValidation))
+
     model = self.topology.buildModel(len(self.getFeatures()), outputNeurons, compileArgs)
     import time
     start = time.time()
-    history = model.fit(XTrain, YTrain, sample_weight=weightTrain, validation_data=(XValidation, YValidation, weightValidation), **trainParams)
+    history = model.fit(XTrain, YTrain, sample_weight=weightTrain, validation_data=(XValidation, YValidation, weightValidation), callbacks=callbacks, **trainParams)
     print("Training ", name, " took ", time.time()-start, " seconds")
 
     return transformations, model, history
