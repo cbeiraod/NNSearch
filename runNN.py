@@ -45,8 +45,11 @@ if __name__ == "__main__":
 
   myNetwork.train()
 
-  myNetwork.save_h5(args.outDirectory)
-  myNetwork.save_history(args.outDirectory)
+  if myNetwork.doCombinatorics == False:
+    myNetwork.save_h5(args.outDirectory)
+    myNetwork.save_history(args.outDirectory)
+  else:
+    myNetwork.saveAllFolds(args.outDirectory)
 
   print "Done!"
 
