@@ -362,12 +362,14 @@ class SampleComponents(object):
   """
   A class to help handle reading the sample components
   """
-  def __init__(self, cfgJson, sampleType, basePath, suffix = "", verbose = False, batch = False):
+  def __init__(self, cfgJson, sampleType, basePath, foldedPath, foldSuffix, suffix = "", verbose = False, batch = False):
     self._rawSource = cfgJson
     self._verbose = verbose
     self._batch = batch
     self._sampleType = sampleType
     self._basePath = basePath
+    self._foldedPath = foldedPath
+    self._foldSuffix = foldSuffix
     self._suffix = suffix
 
     if "name" not in self._rawSource:
@@ -404,13 +406,15 @@ class SampleComponents(object):
       if "files" not in self._rawSource:
         raise KeyError("A component with no files is defined")
       for file in self._rawSource["files"]:
-        filename = self._basePath + "/" + file
+        filename = file
         if suffix != "":
           filename = filename + "_" + suffix
-        filename = filename + ".root"
-        if not os.path.isfile(filename):
+        if not os.path.isfile(self._basePath + "/" + filename + ".root"):
           import errno
           raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), file + " (component: " + self.name + ")")
+        if not os.path.isfile(self._foldedPath + "/" + filename + "_" + foldSuffix + ".root"):
+          import errno
+          raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), file + " (fold of component: " + self.name + ")")
         self.files.append(filename)
     elif self._sampleType == "legacy":
       self.testFiles = []
@@ -420,22 +424,26 @@ class SampleComponents(object):
       if "trainFiles" not in self._rawSource:
         raise KeyError("A component with no trainFiles is defined")
       for file in self._rawSource["testFiles"]:
-        filename = self._basePath + "/" + file
+        filename = file
         if suffix != "":
           filename = filename + "_" + suffix
-        filename = filename + ".root"
-        if not os.path.isfile(filename):
+        if not os.path.isfile(self._basePath + "/" + filename + ".root"):
           import errno
           raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), file + " (component: " + self.name + ")")
+        if not os.path.isfile(self._foldedPath + "/" + filename + "_" + foldSuffix + ".root"):
+          import errno
+          raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), file + " (fold of component: " + self.name + ")")
         self.testFiles.append(filename)
       for file in self._rawSource["trainFiles"]:
-        filename = self._basePath + "/" + file
+        filename = file
         if suffix != "":
           filename = filename + "_" + suffix
-        filename = filename + ".root"
-        if not os.path.isfile(filename):
+        if not os.path.isfile(self._basePath + "/" + filename + ".root"):
           import errno
           raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), file + " (component: " + self.name + ")")
+        if not os.path.isfile(self._foldedPath + "/" + filename + "_" + foldSuffix + ".root"):
+          import errno
+          raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), file + " (fold of component: " + self.name + ")")
         self.trainFiles.append(filename)
 
   @property
@@ -579,91 +587,141 @@ class SampleComponents(object):
     self._trainFiles = value
 
   def getData(self, selection, branches, fraction):
-    allData = []
+    Data = None
 
     if "weight" not in branches:
       branches.append("weight")
     if "Event" not in branches:
       branches.append("Event")
 
+    foldBranches = ["foldID", "fold_a"]
+    if self._foldSuffix[0] == "k":
+      foldBranches = foldBranches + ["fold_b"]
+
     if self._sampleType == "unified":
-      Data = None
       for file in self.files:
-        data = root_numpy.root2array(
-                                     file,
-                                     treename="bdttree",
-                                     selection=selection,
-                                     branches=branches
-                                     )
+        allDataFolds = root_numpy.root2array(
+                                              self._foldedPath + "/" + file + "_" + self._foldSuffix + ".root",
+                                              treename="bdttree_folds",
+                                              branches=foldBranches
+                                              )
+        pdAllDataFolds = pandas.DataFrame(allDataFolds)
+
+        allData = root_numpy.root2array(
+                                        self._basePath + "/" + file + ".root",
+                                        treename="bdttree"
+                                        )
+        pdAllData = pandas.DataFrame(allData)
+
+        foldedData = pandas.concat([pdAllData, pdAllDataFolds], axis=1, join='inner')
+        npFoldedData = foldedData.to_records()
+        # TODO: open here a temporary root file (maybe move it out of the loop)
+        tree = root_numpy.array2tree(npFoldedData, name='tmp_tree')
+
+        npData = root_numpy.tree2array(
+                                        tree,
+                                        selection=selection,
+                                        branches=branches + foldBranches
+                                        )
 
         if fraction < 1.0:
-          data = data[:int(len(data)*fraction)]
+          npData = npData[:int(len(npData)*fraction)]
 
         if Data is None:
-          Data = pandas.DataFrame(data)
+          Data = pandas.DataFrame(npData)
         else:
-          Data = Data.append(pandas.DataFrame(data), ignore_index=True)
+          Data = Data.append(pandas.DataFrame(npData), ignore_index=True)
 
       if fraction < 1.0:
         Data.weight = Data.weight/fraction
 
-      allData = [Data]
     elif self._sampleType == "legacy":
-      trainData = None
-      testData = None
       for file in self.trainFiles:
-        data = root_numpy.root2array(
-                                     file,
-                                     treename="bdttree",
-                                     selection=selection,
-                                     branches=branches
-                                     )
+        allDataFolds = root_numpy.root2array(
+                                              self._foldedPath + "/" + file + "_" + self._foldSuffix + ".root",
+                                              treename="bdttree_folds",
+                                              branches=foldBranches
+                                              )
+        pdAllDataFolds = pandas.DataFrame(allDataFolds)
+
+        allData = root_numpy.root2array(
+                                        self._basePath + "/" + file + ".root",
+                                        treename="bdttree"
+                                        )
+        pdAllData = pandas.DataFrame(allData)
+
+        foldedData = pandas.concat([pdAllData, pdAllDataFolds], axis=1, join='inner')
+        npFoldedData = foldedData.to_records()
+        # TODO: open here a temporary root file (maybe move it out of the loop)
+        tree = root_numpy.array2tree(npFoldedData, name='tmp_tree')
+
+        npData = root_numpy.tree2array(
+                                        tree,
+                                        selection=selection,
+                                        branches=branches + foldBranches
+                                        )
 
         if fraction < 1.0:
-          data = data[:int(len(data)*fraction)]
+          npData = npData[:int(len(npData)*fraction)]
 
-        if trainData is None:
-          trainData = pandas.DataFrame(data)
+        if Data is None:
+          Data = pandas.DataFrame(npData)
         else:
-          trainData = trainData.append(pandas.DataFrame(data), ignore_index=True)
+          Data = Data.append(pandas.DataFrame(npData), ignore_index=True)
 
       for file in self.testFiles:
-        data = root_numpy.root2array(
-                                     file,
-                                     treename="bdttree",
-                                     selection=selection,
-                                     branches=branches
-                                     )
+        allDataFolds = root_numpy.root2array(
+                                              self._foldedPath + "/" + file + "_" + self._foldSuffix + ".root",
+                                              treename="bdttree_folds",
+                                              branches=foldBranches
+                                              )
+        pdAllDataFolds = pandas.DataFrame(allDataFolds)
+
+        allData = root_numpy.root2array(
+                                        self._basePath + "/" + file + ".root",
+                                        treename="bdttree"
+                                        )
+        pdAllData = pandas.DataFrame(allData)
+
+        foldedData = pandas.concat([pdAllData, pdAllDataFolds], axis=1, join='inner')
+        npFoldedData = foldedData.to_records()
+        # TODO: open here a temporary root file (maybe move it out of the loop)
+        tree = root_numpy.array2tree(npFoldedData, name='tmp_tree')
+
+        npData = root_numpy.tree2array(
+                                        tree,
+                                        selection=selection,
+                                        branches=branches + foldBranches
+                                        )
 
         if fraction < 1.0:
-          data = data[:int(len(data)*fraction)]
+          npData = npData[:int(len(npData)*fraction)]
 
-        if testData is None:
-          testData = pandas.DataFrame(data)
+        if Data is None:
+          Data = pandas.DataFrame(npData)
         else:
-          testData = testData.append(pandas.DataFrame(data), ignore_index=True)
+          Data = Data.append(pandas.DataFrame(npData), ignore_index=True)
 
       if fraction < 1.0:
-        trainData.weight = trainData.weight/fraction
-        testData.weight  = testData.weight/fraction
+        Data.weight = Data.weight/fraction
 
-      allData = [testData, trainData]
     else:
       raise ValueError("Unknown type '" + self._sampleType + "'")
 
-    return allData
+    return Data
 
 class NetworkSample(object):
   """
   A class to help handle reading the sample files
   """
-  def __init__(self, cfgJson, preselection, fraction, branches, verbose = False, batch = False):
+  def __init__(self, cfgJson, preselection, fraction, branches, foldSuffix, verbose = False, batch = False):
     self._rawSource = cfgJson
     self._verbose = verbose
     self._batch = batch
     self._preselection = preselection
     self._fraction = fraction
     self._branches = branches
+    self._foldSuffix = foldSuffix
 
     if "name" not in self._rawSource:
       raise KeyError("A sample with no name is defined")
@@ -684,6 +742,10 @@ class NetworkSample(object):
       raise KeyError("sample '" + self.name + "' does not have a basePath")
     self.basePath = self._rawCfg["sample"]["basePath"]
 
+    if "foldedPath" not in self._rawCfg["sample"]:
+      raise KeyError("sample '" + self.name + "' does not have a foldedPath")
+    self.foldedPath = self._rawCfg["sample"]["foldedPath"]
+
     self.type = "unified"
     if "type" in self._rawCfg["sample"]:
       self.type = self._rawCfg["sample"]["type"]
@@ -696,7 +758,7 @@ class NetworkSample(object):
     if "components" not in self._rawCfg["sample"]:
       raise KeyError("sample '" + self.name + "' does not have any components")
     for component in self._rawCfg["sample"]["components"]:
-      tmp = SampleComponents(component, self.type, self.basePath, suffix = self.suffix, verbose = self._verbose, batch = self._batch)
+      tmp = SampleComponents(component, self.type, self.basePath, self.foldedPath, self._foldSuffix, suffix = self.suffix, verbose = self._verbose, batch = self._batch)
       self.components[tmp.name] = tmp
 
   @property
@@ -773,6 +835,24 @@ class NetworkSample(object):
     self._basePath = value
 
   @property
+  def foldedPath(self):
+    """The 'foldedPath' property"""
+    if self._verbose:
+      print "Getter of 'foldedPath' called"
+    return self._foldedPath
+  @foldedPath.setter
+  def foldedPath(self, value):
+    """Setter of the 'foldedPath' property """
+    if not isinstance(value, basestring):
+      raise TypeError("foldedPath must be a string")
+    import os
+    if not os.path.isdir(value):
+      import errno
+      #raise OSError("'" + value + "' is not a valid path")
+      raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), value + " (from file '" + self.cfgFile + "')")
+    self._foldedPath = value
+
+  @property
   def suffix(self):
     """The 'suffix' property"""
     if self._verbose:
@@ -800,30 +880,26 @@ class NetworkSample(object):
       raise TypeError("Components must be a dictionary")
 
   def getData(self):
-    allData = None
+    Data = None
 
     componentID = 0
     for componentName in self.components:
       component = self.components[componentName]
       componentData = component.getData(self._preselection, self._branches.keys(), self._fraction)
-      for fold in componentData:
-        fold["NNSearch_componentID"] = componentID
+      componentData["NNSearch_componentID"] = componentID
       componentID += 1
 
-      if allData is None:
-        allData = componentData
+      if Data is None:
+        Data = componentData
       else:
-        for fold in range(len(allData)):
-          allData[fold] = allData[fold].append(componentData[fold], ignore_index=True)
+        Data = Data.append(componentData, ignore_index=True)
 
-    for fold in range(len(allData)):
-      allData[fold]["sampleWeight"] = allData[fold].weight
+    Data["sampleWeight"] = Data.weight
 
     for weight in self.excludeWeight:
-      for fold in range(len(allData)):
-        allData[fold].sampleWeight = allData[fold].sampleWeight/allData[fold][weight]
+      Data.sampleWeight = Data.sampleWeight/Data[weight]
 
-    return allData
+    return Data
 
 class NetworkBuilder(object):
   """
@@ -835,6 +911,7 @@ class NetworkBuilder(object):
     self._verbose = verbose
     self._batch = batch
     self.transformations = {}
+    self._foldInfo = {}
 
     self.name            = self._rawSource["network"]["name"]
     self.epochs          = self._rawSource["network"]["epochs"]
@@ -875,9 +952,14 @@ class NetworkBuilder(object):
     self.topology  = NetworkTopology (self._rawSource["network"]["topology"],  verbose=self._verbose, batch=self._batch)
     self.optimizer = NetworkOptimizer(self._rawSource["network"]["optimizer"], verbose=self._verbose, batch=self._batch)
 
+    foldSuffix = ""
+    if self.splitting == "n-fold":
+      foldSuffix = "n" + str(self.numberFolds)
+    elif self.splitting == "k-fold":
+      foldSuffix = "k" + str(self.numberFolds)
     self.samples = []
     for sample in self._rawSource["network"]["samples"]:
-      tmp = NetworkSample(sample, self.preselection, self.fraction, self.branches, verbose=self._verbose, batch=self._batch)
+      tmp = NetworkSample(sample, self.preselection, self.fraction, self.branches, foldSuffix, verbose=self._verbose, batch=self._batch)
       self.samples.append(tmp)
 
     consistentType = True
@@ -903,8 +985,8 @@ class NetworkBuilder(object):
     if self.splitting == "n-fold" and self.numberFolds <= 2:
       raise ValueError("The number of splitting folds must be greater than 2 for n-folding")
 
-    if self.samples[0].type == "legacy" and self.numberFolds < 2:
-      self.numberFolds = 2
+    #if self.samples[0].type == "legacy" and self.numberFolds < 2:
+    #  self.numberFolds = 2
 
     np.random.seed(self.seed)
 
@@ -1181,7 +1263,7 @@ class NetworkBuilder(object):
     self._name = value
 
   def getData(self):
-    allData = None
+    Data = None
     dataArray = []
 
     for sample in self.samples:
@@ -1189,67 +1271,17 @@ class NetworkBuilder(object):
       dataArray.append(sampleData)
 
     for i in range(len(dataArray)):
-      for fold in dataArray[i]:
-        fold["category"] = i
-        fold.sampleWeight = fold.sampleWeight/fold.sampleWeight.sum()
+      dataArray[i]["category"] = i
+      # TODO: The division below should be done for each fold independently (probably) or maybe not...
+      dataArray[i].sampleWeight = dataArray[i].sampleWeight/dataArray[i].sampleWeight.sum()
 
     for sample in dataArray:
-      if allData is None:
-        allData = sample
+      if Data is None:
+        Data = sample
       else:
-        for fold in range(len(allData)):
-          allData[fold] = allData[fold].append(sample[fold], ignore_index=True)
+        Data = Data.append(sample, ignore_index=True)
 
-    refold = 0
-    if self.splitting == "n-fold":
-      if len(allData) != 1:
-        raise ValueError("Something went seriously wrong because folds are defined and I did not do the folding")
-      refold = self.numberFolds
-    elif self.splitting == "k-fold" and self.samples[0].type != "legacy":
-      if len(allData) != 1:
-        raise ValueError("Something went seriously wrong because folds are defined and I did not do the folding")
-      refold = 2
-
-    if refold > 1:
-      if self.splittingType == "random":
-        originalData = allData[0]
-        allData = None
-
-        originalData["NNSearch_Fold"] = refold
-
-        # Use stratified division in order to respect the proportion of each type of events
-        labels = range(len(self.samples))
-        for lbl in labels:
-          lblData = originalData[originalData["category"] == lbl]
-
-          components = lblData["NNSearch_componentID"].unique()
-          for comp in components:
-            cmpData = lblData[lblData["NNSearch_componentID"] == comp]
-            cmpSamplesPerFold = len(cmpData.index)/refold
-            tmpFoldedData = []
-            for i in range(1, refold):
-              fold = cmpData.sample(n=cmpSamplesPerFold)
-              fold["NNSearch_Fold"] = i - 1
-              cmpData = cmpData.drop(fold.index)
-              tmpFoldedData.append(fold)
-            cmpData["NNSearch_Fold"] = refold - 1
-            tmpFoldedData.append(cmpData)
-
-            if allData is None:
-              allData = tmpFoldedData
-            else:
-              for fold in range(len(allData)):
-                allData[fold] = allData[fold].append(tmpFoldedData[fold], ignore_index=True)
-      elif self.splittingType == "modulus":
-        originalData = allData[0]
-        allData = []
-
-        originalData["NNSearch_Fold"] = originalData["Event"] % refold
-        for i in range(refold):
-          fold = originalData[originalData["NNSearch_Fold"] == i]
-          allData.append(fold)
-
-    return allData
+    return Data
 
   def getFeatures(self):
     features = []
