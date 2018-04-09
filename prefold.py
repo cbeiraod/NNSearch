@@ -114,8 +114,10 @@ def recursiveFolding(baseDir, outDir, foldingType, folds, splitting, presplit = 
       if nub[-4:] == "root":
         file = ROOT.TFile(baseDir + "/" + nub, "READ")
         tree = file.Get("bdttree")
-        if tree is not None:
+        if tree:
           fold(baseDir + "/" + nub, outDir + "/" + nub[:-5], foldingType, folds, splitting, presplit, verbose)
+        else:
+          print "Skipping " + nub
     else:
       print "Weird stuff is happening, will ignore it."
 
