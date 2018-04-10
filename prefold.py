@@ -89,12 +89,13 @@ def fold(inFile, outFile, foldingType, folds, splitting, presplit = None, verbos
 
   npData = pdData.to_records()
   npData = funk.remove_field_name(npData, "index") # To remove the index, but keeping it might make things better???
-  root_numpy.array2root(npData, outFile, 'bdttree_folds')
+  root_numpy.array2root(npData, outFile, 'bdttree_folds', mode='recreate')
 
   return
 
-def recursiveFolding(baseDir, outDir, foldingType, folds, splitting, presplit = None, verbose = False):
+def recursiveFolding(baseDir, outDir, foldingType, folds, splitting, presplit = None, verbose = False, noRecurse=False):
   import os
+  import ROOT
   funk.make_sure_path_exists(outDir)
 
   folds =  int(folds)
@@ -108,10 +109,16 @@ def recursiveFolding(baseDir, outDir, foldingType, folds, splitting, presplit = 
       print "Checking ", baseDir + "/" + nub
 
     if os.path.isdir(baseDir + "/" + nub):
-      recursiveFolding(baseDir + "/" + nub, outDir + "/" + nub, foldingType, folds, splitting, presplit, verbose)
+      if not noRecurse:
+        recursiveFolding(baseDir + "/" + nub, outDir + "/" + nub, foldingType, folds, splitting, presplit, verbose)
     elif os.path.isfile(baseDir + "/" + nub):
       if nub[-4:] == "root":
-        fold(baseDir + "/" + nub, outDir + "/" + nub[:-5], foldingType, folds, splitting, presplit, verbose)
+        file = ROOT.TFile(baseDir + "/" + nub, "READ")
+        tree = file.Get("bdttree")
+        if tree:
+          fold(baseDir + "/" + nub, outDir + "/" + nub[:-5], foldingType, folds, splitting, presplit, verbose)
+        else:
+          print "Skipping " + nub
     else:
       print "Weird stuff is happening, will ignore it."
 
@@ -132,6 +139,7 @@ if __name__ == "__main__":
   parser.add_argument('-f', '--folds', type=int, default=3, help='Into how many folds should the sample be split')
   parser.add_argument('-t', '--type', default="n-fold", choices=["n-fold", "k-fold"], help='The folding technique to use')
   parser.add_argument(      '--seed', type=int, default=42, help='Seed for the random number generator (only used for random splitting)')
+  parser.add_argument(      '--noRecurse', action='store_true', help='Whether to recurse into the subdirectories')
 
   args = parser.parse_args()
 
@@ -154,4 +162,7 @@ if __name__ == "__main__":
     print "Will split all the root files from directory:", args.inputDirectory, "into " + str(args.folds) + " folds for", args.type, "."
     print "The fold annotation will be saved in the directory:", args.outputDirectory, "with the same structure."
 
-  recursiveFolding(args.inputDirectory, args.outputDirectory, args.type, int(args.folds), args.splitting, args.presplit, args.verbose)
+  if not args.noRecurse:
+    recursiveFolding(args.inputDirectory, args.outputDirectory, args.type, int(args.folds), args.splitting, args.presplit, args.verbose)
+  else:
+    recursiveFolding(args.inputDirectory, args.outputDirectory, args.type, int(args.folds), args.splitting, args.presplit, args.verbose, args.noRecurse)
