@@ -13,11 +13,11 @@
 #...$ -v SGEOUT=accuracy.pickle
 #...$ -v SGEOUT=loss.pickle
 
-#$ -l gpu
+#...$ -l gpu
 
 cd /exper-sw/cmst3/cmssw/users/dbastos/NNSearch
 
 module load root-6.10.02
 
-python runNN.py -c cfg.json -o outputDir -b
+python runNN.py -c cfg.json -o outputDir -bs
 
