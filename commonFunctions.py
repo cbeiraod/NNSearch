@@ -624,7 +624,7 @@ class SampleComponents(object):
           treeBranches = tree.GetListOfBranches()
           for branch in treeBranches:
             branchName = branch.GetName()
-            if branch[-2:] != "Up" and branch[-4:] != "Down":
+            if branchName[-2:] != "Up" and branchName[-4:] != "Down":
               allBranches.append(branchName)
           checkFile.Close()
 
