@@ -3,7 +3,7 @@
     "type":"unified",
     "basePath":"/lstore/cms/cbeiraod/Stop4Body/nTuples_v2017-10-19/",
     "foldedPath":"/lstore/cms/dbastos/Stop4Body/nTuples_v2017-10-19_folded/",
-    "suffix":"skimmed",
+    "suffix":"",
     "components":[
       {
         "name":"ttbar",
