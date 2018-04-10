@@ -104,8 +104,8 @@ def getNameFromPoint(pointParam):
 def copySamplesConfig(newJson, outputDir):
     import os
     import shutil
-    for sample in newJson[samples]:
-        cfgFile=newJson[sample][cfgFile]
+    for sample in newJson["network"]["samples"]:
+        cfgFile=sample["cfgFile"]
         if (os.path.isfile(cfgFile)):
             shutil.copy(cfgFile, outputDir)
 
