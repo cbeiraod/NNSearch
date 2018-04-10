@@ -590,7 +590,7 @@ class SampleComponents(object):
       raise TypeError("trainFiles must be a list")
     self._trainFiles = value
 
-  def getData(self, selection, branches, fraction):
+  def getData(self, selection, branches, fraction, skipSystematics=False):
     Data = None
 
     tmpFile = None
@@ -616,9 +616,22 @@ class SampleComponents(object):
                                               )
         pdAllDataFolds = pandas.DataFrame(allDataFolds)
 
+        allBranches = None
+        if skipSystematics:
+          allBranches = []
+          checkFile = ROOT.TFile(self._basePath + "/" + file + ".root", "READ")
+          tree = checkFile.Get("bdttree")
+          treeBranches = tree.GetListOfBranches()
+          for branch in treeBranches:
+            branchName = branch.GetName()
+            if branch[-2:] != "Up" and branch[-4:] != "Down":
+              allBranches.append(branchName)
+          checkFile.Close()
+
         allData = root_numpy.root2array(
                                         self._basePath + "/" + file + ".root",
-                                        treename="bdttree"
+                                        treename="bdttree",
+                                        branches=allBranches
                                         )
         pdAllData = pandas.DataFrame(allData)
 
@@ -889,13 +902,13 @@ class NetworkSample(object):
     else:
       raise TypeError("Components must be a dictionary")
 
-  def getData(self):
+  def getData(self, skipSystematics=False):
     Data = None
 
     componentID = 0
     for componentName in self.components:
       component = self.components[componentName]
-      componentData = component.getData(self._preselection, self._branches.keys(), self._fraction)
+      componentData = component.getData(self._preselection, self._branches.keys(), self._fraction, skipSystematics=skipSystematics)
       componentData["NNSearch_componentID"] = componentID
       componentID += 1
 
@@ -1273,12 +1286,12 @@ class NetworkBuilder(object):
       raise TypeError("name must be a string")
     self._name = value
 
-  def getData(self):
+  def getData(self, skipSystematics=False):
     Data = None
     dataArray = []
 
     for sample in self.samples:
-      sampleData = sample.getData()
+      sampleData = sample.getData(skipSystematics=skipSystematics)
       dataArray.append(sampleData)
 
     for i in range(len(dataArray)):
@@ -1302,11 +1315,11 @@ class NetworkBuilder(object):
         features = features + [branch]
     return features
 
-  def train(self):
+  def train(self, skipSystematics=False):
     import keras
     features = self.getFeatures()
 
-    allData = self.getData()
+    allData = self.getData(skipSystematics=skipSystematics)
 
     if self.splitting == "n-fold" and len(allData.foldID.unique()) != self.numberFolds:
       raise ValueError("Something went seriously wrong because the folds do not match the requested parameters")
