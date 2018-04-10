@@ -1,8 +1,8 @@
 {
   "sample":{
     "type":"unified",
-    "basePath":"./",
-    "foldedPath":"./trainFolded",
+    "basePath":"/lstore/cms/cbeiraod/Stop4Body/nTuples_v2017-10-19/",
+    "foldedPath":"/lstore/cms/dbastos/Stop4Body/nTuples_v2017-10-19_folded/",
     "suffix":"skimmed",
     "components":[
       {
@@ -10,13 +10,7 @@
         "tag":"stop (550,520)",
         "label":"\\tilde{t} \\left(550,520\\right)",
         "files":[
-          "train/T2DegStop_550_520"
-        ],
-        "trainFiles":[
-          "train/T2DegStop_550_520"
-        ],
-        "testFiles":[
-          "test/T2DegStop_550_520"
+          "T2DegStop_550_520"
         ],
         "color":809,
         "lcolor":1,
