@@ -82,6 +82,7 @@ def saveJsons(myList,cfgJson,dir):
         newJson = createJson(name,pointParam,cfgJson)
         with open(path+'cfg.json', 'w') as outfile:
             json.dump(newJson, outfile, sort_keys = True, indent = 4, ensure_ascii = False)
+            copySamplesConfig(newJson, path)
 
 def getNameFromPoint(pointParam):
     name = ""
@@ -99,6 +100,14 @@ def getNameFromPoint(pointParam):
     name = name.replace("L2_regularizer","L2Reg")
 
     return name
+
+def copySamplesConfig(newJson, outputDir):
+    import os
+    import shutil
+    for sample in newJson[samples]:
+        cfgFile=newJson[sample][cfgFile]
+        if (os.path.isfile(cfgFile)):
+            shutil.copy(cfgFile, outputDir)
 
 if __name__ == "__main__":
     import os
