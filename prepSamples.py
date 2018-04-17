@@ -2,7 +2,7 @@ import sys
 from ROOT import TFile, TH1F, TCanvas
 import commonFunctions as funk
 
-def recursiveSampleWithFold(nTupleDir,foldingDir,outDir,suffix, verbose = False, noRecurse=False):
+def recursiveSampleWithFold(nTupleDir,foldsDir,outDir,suffix, verbose = False, noRecurse=False):
     import os
     import ROOT
     funk.make_sure_path_exists(outDir)
@@ -14,18 +14,20 @@ def recursiveSampleWithFold(nTupleDir,foldingDir,outDir,suffix, verbose = False,
              print "Checking ", nTupleDir + "/" + nub
         if os.path.isdir(nTupleDir + "/" + nub):
           if not noRecurse:
-            recursiveSampleWithFold(nTupleDir + "/" + nub, foldingDir + "/" + nub, outDir + "/" + nub, suffix, verbose, noRecurse)
+            recursiveSampleWithFold(nTupleDir + "/" + nub, foldsDir + "/" + nub, outDir + "/" + nub, suffix, verbose, noRecurse)
         elif os.path.isfile(nTupleDir + "/" + nub):
           if nub[-4:] == "root":
             file = ROOT.TFile(nTupleDir + "/" + nub, "READ")
             tree = file.Get("bdttree")
             if tree:
-                foldFile = ROOT.TFile(foldingDir + "/" + nub[:-5] + "_" + suffix + ".root", "READ")
+                foldFile = ROOT.TFile(foldsDir + "/" + nub[:-5] + "_" + suffix + ".root", "READ")
                 foldTree = foldFile.Get("bdttree_folds")
                 if foldTree:
                     outFile = ROOT.TFile(outDir + "/" + nub[:-5] + "_" + suffix + ".root", "RECREATE")
                     outTree = combineFoldedTree(tree, foldTree)
-		    outTree.Write()
+
+              #fold(nTupleDir + "/" + nub, outDir + "/" + nub[:-5], foldingType, folds, splitting, presplit, verbose)
+              #  root_numpy.array2root(npData, outFile, 'bdttree_folds', mode='recreate')
             else:
               print "Skipping " + nub
         else:
@@ -33,20 +35,11 @@ def recursiveSampleWithFold(nTupleDir,foldingDir,outDir,suffix, verbose = False,
 
     return
 
-def combineFoldedTree(nTupleRootFile, foldedRootFile):
+def combineFoldedTree(nTupleRootFile, foldsRootFile):
     import ROOT
 
-    if nTupleRootFile.GetEntries() == foldedRootFile.GetEntries():
-        from array import array
-	tmpvarID = array( 'l', [ 0 ] )
-	tmpvar_a = array( 'l', [ 0 ] )
-	tmpvar_b = array( 'l', [ 0 ] )
-	nTupleRootFile.Branch('foldID',tmpvar,'foldID/L')
-	nTupleRootFile.Branch('fold_a',tmpvar_a,'fold_a/L')
-	foldedBranches = [x.GetName() for x in foldedRootFile.GetListOfBranches()]
-        if 'fold_b' in foldedBranches:
-	    nTupleRootFile.Branch('fold_b',tmpvar_b,'fold_b/L')
-	nTupleRootFile.AddFriend(foldedRootFile)
+    if nTupleRootFile.GetEntries() == foldsRootFile.GetEntries():
+        nTupleRootFile.AddFriend(foldsRootFile)
         nTupleRootFile.SetBranchStatus("*",0)
         for branch in nTupleRootFile.GetListOfBranches():
             if branch.GetName()[-4:] != "Down" and branch.GetName()[-2:] != "Up":
@@ -62,11 +55,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Process the command line options')
     parser.add_argument('-v', '--verbose', action='store_true', help='Whether to print verbose output')
     parser.add_argument(      '--nTupleDirectory', required=True, help='')
-    parser.add_argument(      '--foldedDirectory', required=True, help='')
+    parser.add_argument(      '--foldsDirectory', required=True, help='')
     parser.add_argument(      '--outputDirectory', required=True, help='')
     parser.add_argument(      '--suffix', default=None, help='')
     parser.add_argument(      '--noRecurse', action='store_true', help='Whether to recurse into the subdirectories')
 
     args = parser.parse_args()
 
-    recursiveSampleWithFold(args.nTupleDirectory,args.foldedDirectory,args.outputDirectory,args.suffix,True,True)
+    recursiveSampleWithFold(args.nTupleDir,args.foldsDir,args.outputDirectory,args.suffix,True,True)

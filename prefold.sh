@@ -4,7 +4,12 @@
 #python prefold.py --type "k-fold" --folds 3 --splitting "random" --presplit 1 --inputDirectory train --outputDirectory trainFolded
 
 export NTUPLE_DIR=/lstore/cms/cbeiraod/Stop4Body/nTuples_v2017-10-19
+export FOLDS_DIR=/lstore/cms/dbastos/Stop4Body/nTuples_v2017-10-19_folds
 export FOLDED_DIR=/lstore/cms/dbastos/Stop4Body/nTuples_v2017-10-19_folded
 
-python prefold.py --type "n-fold" --folds 3 --splitting "random" --inputDirectory ${NTUPLE_DIR} --outputDirectory ${FOLDED_DIR} --noRecurse
-python prefold.py --type "n-fold" --folds 6 --splitting "random" --inputDirectory ${NTUPLE_DIR} --outputDirectory ${FOLDED_DIR} --noRecurse
+export FOLD_TYPE=n
+export NUM_FOLDS=3
+
+python prefold.py --type "${FOLD_TYPE}-fold" --folds $NUM_FOLDS --splitting "random" --inputDirectory ${NTUPLE_DIR} --outputDirectory ${FOLDS_DIR} --noRecurse
+#python prefold.py --type "n-fold" --folds 6 --splitting "random" --inputDirectory ${NTUPLE_DIR} --outputDirectory ${FOLDED_DIR} --noRecursepython prepSamples.py --
+python prepSamples.py --nTupleDirectory ${NTUPLE_DIR} --foldsDirectory ${FOLDS_DIR} --outputDirectory ${FOLDED_DIR} --suffix ${FOLD_TYPE}${NUM_FOLDS}
