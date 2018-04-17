@@ -11,7 +11,7 @@ if __name__ == "__main__":
   parser.add_argument('-v', '--verbose', action='store_true', help='Whether to print verbose output')
   parser.add_argument('-o', '--outDirectory', required=True, help='Name of the output directory')
   parser.add_argument('-b', '--batch', action='store_true', help='Whether this is a batch job, if it is, no interactive questions will be asked and answers will be assumed')
-  parser.add_argument('-s', '--skipSystematics', action='store_true', help='Whether to skip the systematics when loading the root files')
+  parser.add_argument('-s', '--doNotSkipSystematics', action='store_true', help='Whether not to skip the systematics when loading the root files')
 
   args = parser.parse_args()
 
@@ -44,7 +44,7 @@ if __name__ == "__main__":
   myNetwork = funk.NetworkBuilder(args.configFile, batch=args.batch, verbose=args.verbose, tmpdir=args.outDirectory)
 
 
-  myNetwork.train(skipSystematics=args.skipSystematics)
+  myNetwork.train(skipSystematics=(not args.doNotSkipSystematics))
 
   if myNetwork.doCombinatorics == False:
     myNetwork.save_h5(args.outDirectory)
