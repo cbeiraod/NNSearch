@@ -22,10 +22,11 @@ def recursiveSampleWithFold(nTupleDir,foldsDir,outDir,suffix, verbose = False, n
                 if tree:
                     foldFile = ROOT.TFile(foldsDir + "/" + nub[:-5] + "_" + suffix + ".root", "READ")
                     foldTree = foldFile.Get("bdttree_folds")
-                if foldTree:
-                    outFile = ROOT.TFile(outDir + "/" + nub[:-5] + "_" + suffix + ".root", "RECREATE")
-                    outTree = combineFoldsTree(tree, foldTree)
-                outTree.Write()
+                    if foldTree:
+                        outFile = ROOT.TFile(outDir + "/" + nub[:-5] + "_" + suffix + ".root", "RECREATE")
+                        outTree = combineFoldsTree(tree, foldTree)
+                        outTree.Write(ROOT.kOverwrite)
+                        outFile.Close()
             else:
                 print "Skipping " + nub
         else:
