@@ -25,9 +25,7 @@ def recursiveSampleWithFold(nTupleDir,foldingDir,outDir,suffix, verbose = False,
                 if foldTree:
                     outFile = ROOT.TFile(outDir + "/" + nub[:-5] + "_" + suffix + ".root", "RECREATE")
                     outTree = combineFoldedTree(tree, foldTree)
-
-              #fold(nTupleDir + "/" + nub, outDir + "/" + nub[:-5], foldingType, folds, splitting, presplit, verbose)
-              #  root_numpy.array2root(npData, outFile, 'bdttree_folds', mode='recreate')
+		    outTree.Write()
             else:
               print "Skipping " + nub
         else:
@@ -39,7 +37,16 @@ def combineFoldedTree(nTupleRootFile, foldedRootFile):
     import ROOT
 
     if nTupleRootFile.GetEntries() == foldedRootFile.GetEntries():
-        nTupleRootFile.AddFriend(foldedRootFile)
+        from array import array
+	tmpvarID = array( 'l', [ 0 ] )
+	tmpvar_a = array( 'l', [ 0 ] )
+	tmpvar_b = array( 'l', [ 0 ] )
+	nTupleRootFile.Branch('foldID',tmpvar,'foldID/L')
+	nTupleRootFile.Branch('fold_a',tmpvar_a,'fold_a/L')
+	foldedBranches = [x.GetName() for x in foldedRootFile.GetListOfBranches()]
+        if 'fold_b' in foldedBranches:
+	    nTupleRootFile.Branch('fold_b',tmpvar_b,'fold_b/L')
+	nTupleRootFile.AddFriend(foldedRootFile)
         nTupleRootFile.SetBranchStatus("*",0)
         for branch in nTupleRootFile.GetListOfBranches():
             if branch.GetName()[-4:] != "Down" and branch.GetName()[-2:] != "Up":
@@ -62,4 +69,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    recursiveSampleWithFold(args.nTupleDir,args.foldingDir,args.outputDirectory,args.suffix,True,True):
+    recursiveSampleWithFold(args.nTupleDirectory,args.foldedDirectory,args.outputDirectory,args.suffix,True,True)
