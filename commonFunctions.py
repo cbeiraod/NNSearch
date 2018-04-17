@@ -365,7 +365,7 @@ class SampleComponents(object):
   """
   A class to help handle reading the sample components
   """
-  def __init__(self, cfgJson, sampleType, basePath, foldedPath, foldSuffix, suffix = "", verbose = False, batch = False, tmpdir = None):
+  def __init__(self, cfgJson, sampleType, basePath, foldsPath, foldedPath, foldSuffix, suffix = "", verbose = False, batch = False, tmpdir = None):
     self._tmpdir = tmpdir
     self._rawSource = cfgJson
     self._verbose = verbose
@@ -373,6 +373,7 @@ class SampleComponents(object):
     self._sampleType = sampleType
     self._basePath = basePath
     self._foldedPath = foldedPath
+    self._foldsPath = foldsPath
     self._foldSuffix = foldSuffix
     self._suffix = suffix
 
@@ -765,6 +766,10 @@ class NetworkSample(object):
       raise KeyError("sample '" + self.name + "' does not have a basePath")
     self.basePath = self._rawCfg["sample"]["basePath"]
 
+    if "foldsPath" not in self._rawCfg["sample"]:
+      raise KeyError("sample '" + self.name + "' does not have a foldsPath")
+    self.foldsPath = self._rawCfg["sample"]["foldsPath"]
+
     if "foldedPath" not in self._rawCfg["sample"]:
       raise KeyError("sample '" + self.name + "' does not have a foldedPath")
     self.foldedPath = self._rawCfg["sample"]["foldedPath"]
@@ -781,7 +786,7 @@ class NetworkSample(object):
     if "components" not in self._rawCfg["sample"]:
       raise KeyError("sample '" + self.name + "' does not have any components")
     for component in self._rawCfg["sample"]["components"]:
-      tmp = SampleComponents(component, self.type, self.basePath, self.foldedPath, self._foldSuffix, suffix = self.suffix, verbose = self._verbose, batch = self._batch, tmpdir=self._tmpdir)
+      tmp = SampleComponents(component, self.type, self.basePath, self.foldsPath, self.foldedPath, self._foldSuffix, suffix = self.suffix, verbose = self._verbose, batch = self._batch, tmpdir=self._tmpdir)
       self.components[tmp.name] = tmp
 
   @property
@@ -856,6 +861,24 @@ class NetworkSample(object):
       #raise OSError("'" + value + "' is not a valid path")
       raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), value + " (from file '" + self.cfgFile + "')")
     self._basePath = value
+
+  @property
+  def foldsPath(self):
+    """The 'foldsPath' property"""
+    if self._verbose:
+      print "Getter of 'foldsPath' called"
+    return self._foldsPath
+  @foldsPath.setter
+  def foldsPath(self, value):
+    """Setter of the 'foldsPath' property """
+    if not isinstance(value, basestring):
+      raise TypeError("foldsPath must be a string")
+    import os
+    if not os.path.isdir(value):
+      import errno
+      #raise OSError("'" + value + "' is not a valid path")
+      raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), value + " (from file '" + self.cfgFile + "')")
+    self._foldsPath = value
 
   @property
   def foldedPath(self):
@@ -1290,20 +1313,18 @@ class NetworkBuilder(object):
     Data = None
     dataArray = []
 
+    i = 0
     for sample in self.samples:
       sampleData = sample.getData(skipSystematics=skipSystematics)
-      dataArray.append(sampleData)
+      sampleData["category"] = i
+      sampleData.sampleWeight = sampleData.sampleWeight/sampleData.sampleWeight.sum()
 
-    for i in range(len(dataArray)):
-      dataArray[i]["category"] = i
-      # TODO: The division below should be done for each fold independently (probably) or maybe not...
-      dataArray[i].sampleWeight = dataArray[i].sampleWeight/dataArray[i].sampleWeight.sum()
-
-    for sample in dataArray:
       if Data is None:
-        Data = sample
+        Data = sampleData
       else:
-        Data = Data.append(sample, ignore_index=True)
+        Data = Data.append(sampleData, ignore_index = True)
+
+      i += 1
 
     return Data
 
