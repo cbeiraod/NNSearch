@@ -72,4 +72,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    recursiveSampleWithFold(args.nTupleDirectory,args.foldsDirectory,args.outputDirectory,args.suffix,True,True)
+    recursiveSampleWithFold(args.nTupleDirectory,args.foldsDirectory,args.outputDirectory,args.suffix,args.verbose,args.noRecurse)
