@@ -14,15 +14,24 @@ def recursiveSampleWithFold(nTupleDir,foldsDir,outDir,suffix, verbose = False, n
             print "Checking ", nTupleDir + "/" + nub
         if os.path.isdir(nTupleDir + "/" + nub):
             if not noRecurse:
+                if verbose:
+                    print "Recursing into directory"
                 recursiveSampleWithFold(nTupleDir + "/" + nub, foldsDir + "/" + nub, outDir + "/" + nub, suffix, verbose, noRecurse)
         elif os.path.isfile(nTupleDir + "/" + nub):
             if nub[-4:] == "root":
+                if verbose:
+                    print "It is a root file, trying to get trees"
                 file = ROOT.TFile(nTupleDir + "/" + nub, "READ")
                 tree = file.Get("bdttree")
                 if tree:
+                    if verbose:
+                        print "Found the tree in the input file"
                     foldFile = ROOT.TFile(foldsDir + "/" + nub[:-5] + "_" + suffix + ".root", "READ")
                     foldTree = foldFile.Get("bdttree_folds")
                     if foldTree:
+                        if verbose:
+                            print "Found the tree in the folds file"
+                            print "Creating the output file and tree"
                         outFile = ROOT.TFile(outDir + "/" + nub[:-5] + "_" + suffix + ".root", "RECREATE")
                         outTree = combineFoldsTree(tree, foldTree)
                         outTree.Write(ROOT.kOverwrite)
