@@ -611,7 +611,7 @@ class SampleComponents(object):
     if self._sampleType == "unified":
       for file in self.files:
         npData = root_numpy.root2array(
-                                        self._foldsPath + "/" + file + "_" + self._foldSuffix + ".root",
+                                        self._foldedPath + "/" + file + "_" + self._foldSuffix + ".root",
                                         treename="bdttree",
                                         selection=selection,
                                         branches=branches + foldBranches
@@ -633,7 +633,7 @@ class SampleComponents(object):
     elif self._sampleType == "legacy":
       for file in self.trainFiles:
         npData = root_numpy.root2array(
-                                        self._foldsPath + "/" + file + "_" + self._foldSuffix + ".root",
+                                        self._foldedPath + "/" + file + "_" + self._foldSuffix + ".root",
                                         treename="bdttree",
                                         selection=selection,
                                         branches=branches + foldBranches
@@ -651,7 +651,7 @@ class SampleComponents(object):
 
       for file in self.testFiles:
         npData = root_numpy.root2array(
-                                        self._foldsPath + "/" + file + "_" + self._foldSuffix + ".root",
+                                        self._foldedPath + "/" + file + "_" + self._foldSuffix + ".root",
                                         treename="bdttree",
                                         selection=selection,
                                         branches=branches + foldBranches
