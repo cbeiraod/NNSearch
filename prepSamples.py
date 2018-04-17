@@ -45,7 +45,7 @@ def combineFoldedTree(nTupleRootFile, foldedRootFile):
             if branch.GetName()[-4:] != "Down" and branch.GetName()[-2:] != "Up":
                 nTupleRootFile.SetBranchStatus(branch.GetName(),1)
         outTree = nTupleRootFile.CopyTree("")
-    else
+    else:
         print "Number of entries from nTuples is different from the number of entries on the folded sample."
     return outTree
 
@@ -54,10 +54,10 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='Process the command line options')
     parser.add_argument('-v', '--verbose', action='store_true', help='Whether to print verbose output')
-    parser.add_argument(    , '--nTupleDirectory', required=True, help='')
-    parser.add_argument(    , '--foldedDirectory', required=True, help='')
-    parser.add_argument(    , '--outputDirectory', required=True, help='')
-    parser.add_argument(    , '--suffix', default=None, help='')
+    parser.add_argument(      '--nTupleDirectory', required=True, help='')
+    parser.add_argument(      '--foldedDirectory', required=True, help='')
+    parser.add_argument(      '--outputDirectory', required=True, help='')
+    parser.add_argument(      '--suffix', default=None, help='')
     parser.add_argument(      '--noRecurse', action='store_true', help='Whether to recurse into the subdirectories')
 
     args = parser.parse_args()
