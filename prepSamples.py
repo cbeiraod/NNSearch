@@ -34,7 +34,7 @@ def recursiveSampleWithFold(nTupleDir,foldsDir,outDir,suffix, verbose = False, n
                             print "Creating the output file and tree"
                         outFile = ROOT.TFile(outDir + "/" + nub[:-5] + "_" + suffix + ".root", "RECREATE")
                         outTree = combineFoldsTree(tree, foldTree)
-                        outTree.Write(ROOT.kOverwrite)
+                        outTree.Write(ROOT.TObject.kOverwrite)
                         outFile.Close()
             else:
                 print "Skipping " + nub
