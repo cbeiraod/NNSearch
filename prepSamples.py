@@ -41,7 +41,7 @@ def combineFoldsTree(nTupleRootFile, foldsRootFile):
 	tmpvarID = array( 'l', [ 0 ] )
 	tmpvar_a = array( 'l', [ 0 ] )
 	tmpvar_b = array( 'l', [ 0 ] )
-	nTupleRootFile.Branch('foldID',tmpvar,'foldID/L')
+	nTupleRootFile.Branch('foldID',tmpvarID,'foldID/L')
 	nTupleRootFile.Branch('fold_a',tmpvar_a,'fold_a/L')
 	foldsBranches = [x.GetName() for x in foldsRootFile.GetListOfBranches()]
         if 'fold_b' in foldsBranches:
