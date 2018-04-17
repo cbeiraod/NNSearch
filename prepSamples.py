@@ -47,17 +47,17 @@ def combineFoldsTree(nTupleRootFile, foldsRootFile):
     import ROOT
 
     if nTupleRootFile.GetEntries() == foldsRootFile.GetEntries():
-        from array import array
-        tmpvarID = array( 'l', [ 0 ] )
-        tmpvar_a = array( 'l', [ 0 ] )
-        tmpvar_b = array( 'l', [ 0 ] )
-        nTupleRootFile.Branch('foldID',tmpvarID,'foldID/L')
-        nTupleRootFile.Branch('fold_a',tmpvar_a,'fold_a/L')
-        foldsBranches = [x.GetName() for x in foldsRootFile.GetListOfBranches()]
-        if 'fold_b' in foldsBranches:
-            nTupleRootFile.Branch('fold_b',tmpvar_b,'fold_b/L')
+        #from array import array
+        #tmpvarID = array( 'l', [ 0 ] )
+        #tmpvar_a = array( 'l', [ 0 ] )
+        #tmpvar_b = array( 'l', [ 0 ] )
+        #nTupleRootFile.Branch('foldID',tmpvarID,'foldID/L')
+        #nTupleRootFile.Branch('fold_a',tmpvar_a,'fold_a/L')
+        #foldsBranches = [x.GetName() for x in foldsRootFile.GetListOfBranches()]
+        #if 'fold_b' in foldsBranches:
+        #    nTupleRootFile.Branch('fold_b',tmpvar_b,'fold_b/L')
 
-        nTupleRootFile.AddFriend(foldsRootFile)
+        #nTupleRootFile.AddFriend(foldsRootFile)
 
         nTupleRootFile.SetBranchStatus("*",0)
         for branch in nTupleRootFile.GetListOfBranches():
@@ -65,6 +65,26 @@ def combineFoldsTree(nTupleRootFile, foldsRootFile):
                 nTupleRootFile.SetBranchStatus(branch.GetName(),1)
 
         outTree = nTupleRootFile.CopyTree("")
+
+        import ctypes
+        foldsBranches = [x.GetName() for x in foldsRootFile.GetListOfBranches()]
+        tmpFoldID = ctypes.c_int64(0)
+        tmpFold_a = ctypes.c_int64(0)
+        tmpFold_b = ctypes.c_int64(0)
+        branchFoldID = outTree.Branch("foldID", tmpFoldID, "foldID/L")
+        foldsRootFile.SetBranchAddress("foldID", tmpFoldID)
+        branchFold_a = outTree.Branch("fold_a", tmpFold_a, "fold_a/L")
+        foldsRootFile.SetBranchAddress("fold_a", tmpFold_a)
+        if 'fold_b' in foldsBranches:
+            branchFold_b = outTree.Branch("fold_b", tmpFold_b, "fold_b/L")
+            foldsRootFile.SetBranchAddress("fold_b", tmpFold_b)
+
+        for i in range(nTupleRootFile.GetEntries()):
+            foldsRootFile.GetEntry(i)
+            branchFoldID.Fill()
+            branchFold_a.Fill()
+            if 'fold_b' in foldsBranches:
+                branchFold_b.Fill()
     else:
         print "Number of entries from nTuples is different from the number of entries on the folds sample."
     return outTree
