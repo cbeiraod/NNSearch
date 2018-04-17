@@ -7,8 +7,8 @@
       "neurons":20,
       "activation":"relu"
     },
-    "epochs":300,
-    "batchSize":320,
+    "epochs":5,
+    "batchSize":3200,
 
     "splitting":"n-fold",
     "splittingType":"modulus",

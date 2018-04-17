@@ -4,7 +4,7 @@
     "basePath":"/lstore/cms/cbeiraod/Stop4Body/nTuples_v2017-10-19/",
     "foldsPath":"/lstore/cms/dbastos/Stop4Body/nTuples_v2017-10-19_folds/",
     "foldedPath":"/lstore/cms/dbastos/Stop4Body/nTuples_v2017-10-19_folded/",
-    "suffix":"skimmed",
+    "suffix":"",
     "components":[
       {
         "name":"stop550520",
