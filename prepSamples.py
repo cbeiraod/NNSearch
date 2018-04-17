@@ -11,25 +11,25 @@ def recursiveSampleWithFold(nTupleDir,foldsDir,outDir,suffix, verbose = False, n
 
     for nub in nubs:
         if verbose:
-             print "Checking ", nTupleDir + "/" + nub
+            print "Checking ", nTupleDir + "/" + nub
         if os.path.isdir(nTupleDir + "/" + nub):
-          if not noRecurse:
-            recursiveSampleWithFold(nTupleDir + "/" + nub, foldsDir + "/" + nub, outDir + "/" + nub, suffix, verbose, noRecurse)
+            if not noRecurse:
+                recursiveSampleWithFold(nTupleDir + "/" + nub, foldsDir + "/" + nub, outDir + "/" + nub, suffix, verbose, noRecurse)
         elif os.path.isfile(nTupleDir + "/" + nub):
-          if nub[-4:] == "root":
-            file = ROOT.TFile(nTupleDir + "/" + nub, "READ")
-            tree = file.Get("bdttree")
-            if tree:
-                foldFile = ROOT.TFile(foldsDir + "/" + nub[:-5] + "_" + suffix + ".root", "READ")
-                foldTree = foldFile.Get("bdttree_folds")
+            if nub[-4:] == "root":
+                file = ROOT.TFile(nTupleDir + "/" + nub, "READ")
+                tree = file.Get("bdttree")
+                if tree:
+                    foldFile = ROOT.TFile(foldsDir + "/" + nub[:-5] + "_" + suffix + ".root", "READ")
+                    foldTree = foldFile.Get("bdttree_folds")
                 if foldTree:
                     outFile = ROOT.TFile(outDir + "/" + nub[:-5] + "_" + suffix + ".root", "RECREATE")
                     outTree = combineFoldsTree(tree, foldTree)
-            outTree.Write()
+                outTree.Write()
             else:
-              print "Skipping " + nub
+                print "Skipping " + nub
         else:
-          print "Weird stuff is happening, will ignore it."
+            print "Weird stuff is happening, will ignore it."
 
     return
 
