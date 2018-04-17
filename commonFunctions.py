@@ -610,41 +610,12 @@ class SampleComponents(object):
 
     if self._sampleType == "unified":
       for file in self.files:
-        allDataFolds = root_numpy.root2array(
-                                              self._foldedPath + "/" + file + "_" + self._foldSuffix + ".root",
-                                              treename="bdttree_folds",
-                                              branches=foldBranches
-                                              )
-        pdAllDataFolds = pandas.DataFrame(allDataFolds)
-
-        allBranches = None
-        if skipSystematics:
-          allBranches = []
-          checkFile = ROOT.TFile(self._basePath + "/" + file + ".root", "READ")
-          tree = checkFile.Get("bdttree")
-          treeBranches = tree.GetListOfBranches()
-          for branch in treeBranches:
-            branchName = branch.GetName()
-            if branchName[-2:] != "Up" and branchName[-4:] != "Down":
-              allBranches.append(branchName)
-          checkFile.Close()
-
-        allData = root_numpy.root2array(
-                                        self._basePath + "/" + file + ".root",
+        npData = root_numpy.root2array(
+                                        self._foldsPath + "/" + file + "_" + self._foldSuffix + ".root",
                                         treename="bdttree",
-                                        branches=allBranches
-                                        )
-        pdAllData = pandas.DataFrame(allData)
-
-        foldedData = pandas.concat([pdAllData, pdAllDataFolds], axis=1, join='inner')
-        npFoldedData = foldedData.to_records()
-        tree = root_numpy.array2tree(npFoldedData, name='tmp_tree')
-
-        npData = root_numpy.tree2array(
-                                        tree,
                                         selection=selection,
                                         branches=branches + foldBranches
-                                        )
+                                      )
 
         if fraction < 1.0:
           npData = npData[:int(len(npData)*fraction)]
@@ -653,34 +624,20 @@ class SampleComponents(object):
           Data = pandas.DataFrame(npData)
         else:
           Data = Data.append(pandas.DataFrame(npData), ignore_index=True)
+
+        npData = None
 
       if fraction < 1.0:
         Data.weight = Data.weight/fraction
 
     elif self._sampleType == "legacy":
       for file in self.trainFiles:
-        allDataFolds = root_numpy.root2array(
-                                              self._foldedPath + "/" + file + "_" + self._foldSuffix + ".root",
-                                              treename="bdttree_folds",
-                                              branches=foldBranches
-                                              )
-        pdAllDataFolds = pandas.DataFrame(allDataFolds)
-
-        allData = root_numpy.root2array(
-                                        self._basePath + "/" + file + ".root",
-                                        treename="bdttree"
-                                        )
-        pdAllData = pandas.DataFrame(allData)
-
-        foldedData = pandas.concat([pdAllData, pdAllDataFolds], axis=1, join='inner')
-        npFoldedData = foldedData.to_records()
-        tree = root_numpy.array2tree(npFoldedData, name='tmp_tree')
-
-        npData = root_numpy.tree2array(
-                                        tree,
+        npData = root_numpy.root2array(
+                                        self._foldsPath + "/" + file + "_" + self._foldSuffix + ".root",
+                                        treename="bdttree",
                                         selection=selection,
                                         branches=branches + foldBranches
-                                        )
+                                      )
 
         if fraction < 1.0:
           npData = npData[:int(len(npData)*fraction)]
@@ -689,30 +646,16 @@ class SampleComponents(object):
           Data = pandas.DataFrame(npData)
         else:
           Data = Data.append(pandas.DataFrame(npData), ignore_index=True)
+
+        npData = None
 
       for file in self.testFiles:
-        allDataFolds = root_numpy.root2array(
-                                              self._foldedPath + "/" + file + "_" + self._foldSuffix + ".root",
-                                              treename="bdttree_folds",
-                                              branches=foldBranches
-                                              )
-        pdAllDataFolds = pandas.DataFrame(allDataFolds)
-
-        allData = root_numpy.root2array(
-                                        self._basePath + "/" + file + ".root",
-                                        treename="bdttree"
-                                        )
-        pdAllData = pandas.DataFrame(allData)
-
-        foldedData = pandas.concat([pdAllData, pdAllDataFolds], axis=1, join='inner')
-        npFoldedData = foldedData.to_records()
-        tree = root_numpy.array2tree(npFoldedData, name='tmp_tree')
-
-        npData = root_numpy.tree2array(
-                                        tree,
+        npData = root_numpy.root2array(
+                                        self._foldsPath + "/" + file + "_" + self._foldSuffix + ".root",
+                                        treename="bdttree",
                                         selection=selection,
                                         branches=branches + foldBranches
-                                        )
+                                      )
 
         if fraction < 1.0:
           npData = npData[:int(len(npData)*fraction)]
@@ -721,6 +664,8 @@ class SampleComponents(object):
           Data = pandas.DataFrame(npData)
         else:
           Data = Data.append(pandas.DataFrame(npData), ignore_index=True)
+
+        npData = None
 
       if fraction < 1.0:
         Data.weight = Data.weight/fraction
