@@ -417,9 +417,12 @@ class SampleComponents(object):
         if not os.path.isfile(self._basePath + "/" + filename + ".root"):
           import errno
           raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), file + " (component: " + self.name + ")")
+        if not os.path.isfile(self._foldsPath + "/" + filename + "_" + foldSuffix + ".root"):
+          import errno
+          raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), file + " (folds of component: " + self.name + ")")
         if not os.path.isfile(self._foldedPath + "/" + filename + "_" + foldSuffix + ".root"):
           import errno
-          raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), file + " (fold of component: " + self.name + ")")
+          raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), file + " (fold file of component: " + self.name + ")")
         self.files.append(filename)
     elif self._sampleType == "legacy":
       self.testFiles = []
@@ -435,9 +438,12 @@ class SampleComponents(object):
         if not os.path.isfile(self._basePath + "/" + filename + ".root"):
           import errno
           raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), file + " (component: " + self.name + ")")
+        if not os.path.isfile(self._foldsPath + "/" + filename + "_" + foldSuffix + ".root"):
+          import errno
+          raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), file + " (folds of component: " + self.name + ")")
         if not os.path.isfile(self._foldedPath + "/" + filename + "_" + foldSuffix + ".root"):
           import errno
-          raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), file + " (fold of component: " + self.name + ")")
+          raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), file + " (fold file of component: " + self.name + ")")
         self.testFiles.append(filename)
       for file in self._rawSource["trainFiles"]:
         filename = file
@@ -446,9 +452,12 @@ class SampleComponents(object):
         if not os.path.isfile(self._basePath + "/" + filename + ".root"):
           import errno
           raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), file + " (component: " + self.name + ")")
+        if not os.path.isfile(self._foldsPath + "/" + filename + "_" + foldSuffix + ".root"):
+          import errno
+          raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), file + " (folds of component: " + self.name + ")")
         if not os.path.isfile(self._foldedPath + "/" + filename + "_" + foldSuffix + ".root"):
           import errno
-          raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), file + " (fold of component: " + self.name + ")")
+          raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), file + " (fold file of component: " + self.name + ")")
         self.trainFiles.append(filename)
 
   @property
