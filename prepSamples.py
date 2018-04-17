@@ -24,10 +24,8 @@ def recursiveSampleWithFold(nTupleDir,foldsDir,outDir,suffix, verbose = False, n
                 foldTree = foldFile.Get("bdttree_folds")
                 if foldTree:
                     outFile = ROOT.TFile(outDir + "/" + nub[:-5] + "_" + suffix + ".root", "RECREATE")
-                    outTree = combineFoldedTree(tree, foldTree)
-
-              #fold(nTupleDir + "/" + nub, outDir + "/" + nub[:-5], foldingType, folds, splitting, presplit, verbose)
-              #  root_numpy.array2root(npData, outFile, 'bdttree_folds', mode='recreate')
+                    outTree = combineFoldsTree(tree, foldTree)
+		    outTree.Write()
             else:
               print "Skipping " + nub
         else:
@@ -35,18 +33,27 @@ def recursiveSampleWithFold(nTupleDir,foldsDir,outDir,suffix, verbose = False, n
 
     return
 
-def combineFoldedTree(nTupleRootFile, foldsRootFile):
+def combineFoldsTree(nTupleRootFile, foldsRootFile):
     import ROOT
 
     if nTupleRootFile.GetEntries() == foldsRootFile.GetEntries():
-        nTupleRootFile.AddFriend(foldsRootFile)
+        from array import array
+	tmpvarID = array( 'l', [ 0 ] )
+	tmpvar_a = array( 'l', [ 0 ] )
+	tmpvar_b = array( 'l', [ 0 ] )
+	nTupleRootFile.Branch('foldID',tmpvar,'foldID/L')
+	nTupleRootFile.Branch('fold_a',tmpvar_a,'fold_a/L')
+	foldsBranches = [x.GetName() for x in foldsRootFile.GetListOfBranches()]
+        if 'fold_b' in foldsBranches:
+	    nTupleRootFile.Branch('fold_b',tmpvar_b,'fold_b/L')
+	nTupleRootFile.AddFriend(foldsRootFile)
         nTupleRootFile.SetBranchStatus("*",0)
         for branch in nTupleRootFile.GetListOfBranches():
             if branch.GetName()[-4:] != "Down" and branch.GetName()[-2:] != "Up":
                 nTupleRootFile.SetBranchStatus(branch.GetName(),1)
         outTree = nTupleRootFile.CopyTree("")
     else:
-        print "Number of entries from nTuples is different from the number of entries on the folded sample."
+        print "Number of entries from nTuples is different from the number of entries on the folds sample."
     return outTree
 
 if __name__ == "__main__":
@@ -62,4 +69,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    recursiveSampleWithFold(args.nTupleDir,args.foldsDir,args.outputDirectory,args.suffix,True,True)
+    recursiveSampleWithFold(args.nTupleDirectory,args.foldsDirectory,args.outputDirectory,args.suffix,True,True)
