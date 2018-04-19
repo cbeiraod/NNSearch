@@ -11,4 +11,4 @@ export FOLD_TYPE=n
 export NUM_FOLDS=3
 
 python prefold.py --type "${FOLD_TYPE}-fold" --folds $NUM_FOLDS --splitting "random" --inputDirectory ${NTUPLE_DIR} --outputDirectory ${FOLDS_DIR} --noRecurse
-python prepSamples.py --nTupleDirectory ${NTUPLE_DIR} --foldsDirectory ${FOLDS_DIR} --outputDirectory ${FOLDED_DIR} --suffix ${FOLD_TYPE}${NUM_FOLDS} --noRecurse
+python combineFolds.py --nTupleDirectory ${NTUPLE_DIR} --foldsDirectory ${FOLDS_DIR} --outputDirectory ${FOLDED_DIR} --suffix ${FOLD_TYPE}${NUM_FOLDS} --noRecurse
